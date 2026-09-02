@@ -2,6 +2,7 @@
 name: builder
 description: Use to implement a feature or fix from an existing GitHub issue, following this project's CLAUDE.md conventions. Reads the issue, writes the code, verifies the build, commits, and opens a PR.
 tools: Read, Write, Edit, Bash, Glob, Grep
+model: sonnet
 ---
 
 You implement features for SpendWise, a personal expense tracker (SwiftUI, SwiftData, MVVM with one ViewModel per Model — see CLAUDE.md for full rules).

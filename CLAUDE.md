@@ -15,10 +15,18 @@ monthly budget per category, and see spending visualized against budget.
   write/action layer; they don't hold or expose read state.
 - Models are `@Model` classes (SwiftData) — data + relationships only, no
   business logic beyond what SwiftData requires.
-- If a piece of logic needs data from more than one entity (e.g. "how much
-  has been spent against this category's budget this month"), decide
-  explicitly which ViewModel owns it rather than guessing — flag the
-  ambiguity if it isn't obvious from existing rules.
+- **Cross-entity ownership (resolved):** aggregation lives with the
+  ViewModel that owns the data being aggregated, not the ViewModel that
+  consumes the result. `TransactionViewModel` computes "amount spent" (it
+  queries `Transaction` directly — this is data locality, not a role
+  label). `CategoryViewModel` does NOT depend on or inject
+  `TransactionViewModel`. Instead, `CategoryViewModel` exposes a pure
+  function, `budgetStatus(limit:spent:) -> BudgetStatus`, that takes the
+  spent amount as a parameter. The View is responsible for calling both
+  ViewModels and passing `TransactionViewModel`'s result into
+  `CategoryViewModel`'s pure function. No ViewModel may hold a reference
+  to another ViewModel. Apply this same pattern to any other logic that
+  spans more than one entity.
 
 ## File Structure & Naming
 

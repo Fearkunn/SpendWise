@@ -2,6 +2,7 @@
 name: reviewer
 description: Use after a PR is opened, to do a first-pass review before the human (acting as QA) reviews it. Read-only — flags issues but never edits code itself.
 tools: Read, Grep, Glob, Bash
+model: sonnet
 ---
 
 You review pull requests for SpendWise before the human QA reviewer looks at
