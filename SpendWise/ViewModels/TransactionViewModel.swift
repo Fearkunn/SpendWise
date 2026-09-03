@@ -17,8 +17,11 @@ import os
 /// `@MainActor`-isolated because it owns a `ModelContext`, which is not
 /// `Sendable` and must stay on the actor that created it.
 ///
-/// Aggregation (e.g. spend-against-budget) is intentionally out of scope
-/// here; it belongs to a separate method added later.
+/// Month-scoped spend aggregation also lives here, rather than on
+/// `CategoryViewModel`, because it queries `Transaction` directly — data
+/// locality, not a role label. `CategoryViewModel` consumes the results as
+/// parameters (e.g. into `BudgetStatus.evaluate(limit:spent:)`) and never
+/// calls into this type.
 @Observable
 @MainActor
 final class TransactionViewModel {
@@ -119,6 +122,94 @@ final class TransactionViewModel {
         } catch {
             logger.error("Failed to save transaction deletion: \(error.localizedDescription)")
             throw TransactionValidationError.saveFailed(underlying: error)
+        }
+    }
+
+    // MARK: - Aggregation
+
+    /// Every expense in the calendar month containing `month`, categorized
+    /// or not.
+    ///
+    /// - Parameter month: Any date within the target month; only its
+    ///   year/month component is used — the day is irrelevant.
+    /// - Throws: If the underlying fetch fails.
+    func monthTotal(in month: Date) throws -> Int {
+        try transactions(in: month).reduce(0) { $0 + $1.amount }
+    }
+
+    /// Spend attributed to a single category within the calendar month
+    /// containing `month`.
+    ///
+    /// - Parameters:
+    ///   - month: Any date within the target month; only its year/month
+    ///     component is used — the day is irrelevant.
+    ///   - categoryID: The persistent identifier of the category to sum
+    ///     spend for.
+    /// - Throws: If the underlying fetch fails.
+    func spent(in month: Date, categoryID: PersistentIdentifier) throws -> Int {
+        try transactions(in: month)
+            .filter { $0.category?.persistentModelID == categoryID }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    /// Spend in the calendar month containing `month` that isn't
+    /// attributed to any live category.
+    ///
+    /// Derived as `monthTotal(in:)` minus the sum of `spent(in:categoryID:)`
+    /// across every currently-existing `Category` — deliberately *not* by
+    /// filtering transactions for `category == nil`. The two look
+    /// equivalent but aren't: the subtraction form is correct by
+    /// construction, since it reconciles against the month total rather
+    /// than depending on enumerating which categories exist lining up
+    /// exactly with each transaction's live `category` reference.
+    ///
+    /// - Parameter month: Any date within the target month; only its
+    ///   year/month component is used — the day is irrelevant.
+    /// - Throws: If the underlying fetch fails.
+    func uncategorizedTotal(in month: Date) throws -> Int {
+        let total = try monthTotal(in: month)
+
+        let categories: [Category]
+        do {
+            categories = try modelContext.fetch(FetchDescriptor<Category>())
+        } catch {
+            logger.error("Failed to fetch categories for uncategorized-total aggregation: \(error.localizedDescription)")
+            throw error
+        }
+
+        let categorizedSpend = try categories.reduce(0) { partial, category in
+            try partial + spent(in: month, categoryID: category.persistentModelID)
+        }
+
+        return total - categorizedSpend
+    }
+
+    // MARK: - Aggregation Helpers
+
+    /// Every transaction dated within the calendar month containing
+    /// `month`, using the device's current calendar to determine month
+    /// boundaries.
+    ///
+    /// The upper bound is exclusive, so a transaction dated exactly at the
+    /// start of the *next* month is correctly excluded.
+    private func transactions(in month: Date) throws -> [Transaction] {
+        let calendar = Calendar.current
+        guard let interval = calendar.dateInterval(of: .month, for: month) else {
+            return []
+        }
+        let start = interval.start
+        let end = interval.end
+
+        let predicate = #Predicate<Transaction> { transaction in
+            transaction.date >= start && transaction.date < end
+        }
+        let descriptor = FetchDescriptor<Transaction>(predicate: predicate)
+
+        do {
+            return try modelContext.fetch(descriptor)
+        } catch {
+            logger.error("Failed to fetch transactions for month aggregation: \(error.localizedDescription)")
+            throw error
         }
     }
 
