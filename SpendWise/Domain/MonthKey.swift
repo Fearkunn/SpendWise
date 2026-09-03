@@ -107,11 +107,16 @@ struct MonthKey: Hashable, Comparable {
         (lhs.year, lhs.month) < (rhs.year, rhs.month)
     }
 
-    // MARK: - Private
+    // MARK: - Aggregation Bridge
 
     /// The first moment of this calendar month, per the device's current
     /// calendar.
-    private var startOfMonth: Date {
+    ///
+    /// Exposed (not `private`) so callers can bridge a `MonthKey` into the
+    /// `Date`-based aggregation methods on `TransactionViewModel`
+    /// (`monthTotal(in:)` and friends), which only need *some* date inside
+    /// the target month — the day is irrelevant to them.
+    var startOfMonth: Date {
         var components = DateComponents()
         components.year = year
         components.month = month
