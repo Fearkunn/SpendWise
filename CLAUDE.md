@@ -31,11 +31,20 @@ monthly budget per category, and see spending visualized against budget.
 ## File Structure & Naming
 
 - Models/Transaction.swift, Models/Category.swift — @Model types only
-- Domain/ — plain value types that aren't @Model or a ViewModel (e.g.
-  BudgetStatus). Use this for pure business-logic types shared across
-  ViewModels, not Models/.
+- Domain/ — plain value types that aren't @Model or a ViewModel. Once more
+  than 2-3 files accumulate, group into subfolders by purpose, not left
+  flat:
+  - Domain/Errors/ — typed error enums (e.g. CategoryValidationError)
+  - Domain/Formatting/ — formatters/utilities (e.g. RupiahFormatter)
+  - Domain/<Feature>/ — feature-specific helper types used by more than
+    one file (e.g. Domain/Transaction/ for TransactionDayGroup)
+  - Shared cross-feature value types (e.g. BudgetStatus, MonthKey) stay
+    at Domain/ root
 - ViewModels/TransactionViewModel.swift, ViewModels/CategoryViewModel.swift
-- Views/ — one file per screen, named <Screen>View.swift
+- Views/ — split by role, not left flat:
+  - Views/Screens/ — full screens, named <Screen>View.swift
+  - Views/Components/ — reusable pieces used across more than one screen
+    (e.g. BudgetBar, TransactionRow, empty-state views, tab bar pieces)
 
 ## Do Not
 
@@ -44,6 +53,32 @@ monthly budget per category, and see spending visualized against budget.
   at least logging
 - Do not modify .xcodeproj/.pbxproj structure directly
 
+## Git Conventions
+
+**Commit messages** — Conventional Commits format, no exceptions:
+`<type>: <description>` (or `<type>(<scope>): <description>` if a scope
+adds clarity). `type` MUST be one of: `feat`, `fix`, `refactor`, `test`,
+`chore`, `docs`. Description is imperative mood, lowercase, no period,
+under ~72 characters. A body is optional — if included, use short
+paragraphs or bullets, not an essay.
+
+**Branch names** — `<type>/<issue-number>-<kebab-case-description>`,
+using the same `type` as the commit (e.g. `feat/7-transaction-crud`,
+`fix/9-zero-limit-validation`, `chore/21-reorganize-folders`). Always
+include the issue number. Do not vary this pattern.
+
+**PR descriptions** — keep it short and conventional, like a typical
+open-source PR, not an engineering design doc:
+- **Summary**: 1-3 sentences, what changed and why (not how).
+- **Changes**: a short bullet list of what was touched.
+- **Testing**: what to verify manually, 1-3 bullets.
+- Closes #N footer.
+
+Deep technical rationale (architecture trade-offs, alternatives
+considered, edge-case reasoning) belongs in code comments or the issue
+thread, not the PR description. If the PR body is longer than roughly
+150 words excluding the bullet lists, it's too long — trim it.
+
 ## Verification
 
 A clean build is not enough — it does not catch runtime issues like broken
@@ -51,6 +86,13 @@ string formatting, incorrect chart data, or wrong budget calculations. After
 building successfully, also describe what changed from a user's perspective
 (what should visually appear/behave differently) so it can be checked
 against the running app.
+
+**Do not launch or boot the Simulator to visually inspect the app
+yourself** (e.g. `xcrun simctl launch`, opening Simulator.app, or running
+the app to "look" at it) — repeated Simulator launches are resource-heavy
+and this is the user's job, not yours. Simulator boot is acceptable only
+as an unavoidable side effect of running the automated test suite
+(`xcodebuild test`) — never as a standalone action to check appearance.
 
 ## Build
 
