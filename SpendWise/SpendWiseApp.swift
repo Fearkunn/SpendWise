@@ -13,14 +13,10 @@ struct SpendWiseApp: App {
 
     // MARK: - Properties
 
-    /// The app's shared SwiftData persistence container.
-    ///
-    /// The schema is intentionally empty for now — the `Transaction` and
-    /// `Category` model types land in a later issue and will be registered
-    /// here once they exist. This property only wires up the container so
-    /// the persistence stack is available from the app entry point.
+    /// The app's shared SwiftData persistence container, backed by the
+    /// `Transaction` and `Category` models.
     private let modelContainer: ModelContainer = {
-        let schema = Schema([])
+        let schema = Schema([Transaction.self, Category.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
