@@ -30,7 +30,10 @@ monthly budget per category, and see spending visualized against budget.
 
 ## File Structure & Naming
 
-- Models/Transaction.swift, Models/Category.swift
+- Models/Transaction.swift, Models/Category.swift — @Model types only
+- Domain/ — plain value types that aren't @Model or a ViewModel (e.g.
+  BudgetStatus). Use this for pure business-logic types shared across
+  ViewModels, not Models/.
 - ViewModels/TransactionViewModel.swift, ViewModels/CategoryViewModel.swift
 - Views/ — one file per screen, named <Screen>View.swift
 
