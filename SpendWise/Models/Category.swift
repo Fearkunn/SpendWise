@@ -10,6 +10,15 @@ import SwiftData
 
 /// A spending category with an optional monthly budget limit and a color
 /// token used to render it consistently across the UI.
+///
+/// - Note: This name collides with the Objective-C runtime's `Category`
+///   typedef (`objc/runtime.h`, transitively visible) in explicit
+///   type-annotation position — e.g. `: Category`, `FetchDescriptor<Category>()`
+///   — though not in constructor calls (`Category(name:...)`) or contexts
+///   where Swift's contextual inference already pins down the type. This
+///   has already broken two test files. When an explicit annotation is
+///   needed, especially in test targets, qualify it as `SpendWise.Category`
+///   to avoid an ambiguous-type-lookup compiler error.
 @Model
 final class Category {
 
