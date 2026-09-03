@@ -114,19 +114,19 @@ struct TransactionViewModelAggregationTests {
 
     // MARK: - uncategorizedTotal(in:) — subtraction-based derivation
 
-    /// Proves `uncategorizedTotal` is derived as `monthTotal` minus
-    /// categorized spend, not by filtering for `category == nil`.
+    /// Checks the reconciliation invariant `uncategorizedTotal` is expected
+    /// to uphold: uncategorized spend plus every live category's spend must
+    /// always equal the month total, with no gap or double-count.
     ///
     /// Sets up a scenario where a `Category` is deleted after its
     /// transactions were logged. SwiftData's `.nullify` delete rule turns
-    /// each affected transaction's `category` into `nil`, so a
-    /// filter-based approach and the subtraction-based approach happen to
-    /// agree here in isolation — but the invariant assertion below is what
-    /// actually proves the reconciliation property that makes the
-    /// subtraction form the only correct one: uncategorized spend plus
-    /// every live category's spend must always equal the month total,
-    /// with no gap or double-count, regardless of how many categories
-    /// exist or have been deleted.
+    /// each affected transaction's `category` into `nil`, so under today's
+    /// schema a filter-based (`category == nil`) implementation would
+    /// satisfy this same assertion too — this test doesn't distinguish
+    /// between the two. It exists to catch a regression in the invariant
+    /// itself, not to prove the subtraction-based derivation is uniquely
+    /// correct; that derivation is chosen for reasons that only matter if
+    /// the schema changes (see the doc comment on `uncategorizedTotal(in:)`).
     @Test func uncategorizedTotalReconcilesWithMonthTotalAndLiveCategorySpend() throws {
         let (context, viewModel) = makeSUT()
         let groceries = Category(name: "Groceries", colorToken: "green")
@@ -161,9 +161,8 @@ struct TransactionViewModelAggregationTests {
         // uncategorized spend (25_000) both land here.
         #expect(uncategorized == 100_000)
 
-        // The reconciliation invariant the subtraction-based derivation
-        // guarantees by construction: categorized + uncategorized always
-        // equals the month total.
+        // The reconciliation invariant `uncategorizedTotal` is expected to
+        // uphold: categorized + uncategorized always equals the month total.
         #expect(monthTotal == groceriesSpent + transportSpent + uncategorized)
     }
 

@@ -157,11 +157,14 @@ final class TransactionViewModel {
     ///
     /// Derived as `monthTotal(in:)` minus the sum of `spent(in:categoryID:)`
     /// across every currently-existing `Category` — deliberately *not* by
-    /// filtering transactions for `category == nil`. The two look
-    /// equivalent but aren't: the subtraction form is correct by
-    /// construction, since it reconciles against the month total rather
-    /// than depending on enumerating which categories exist lining up
-    /// exactly with each transaction's live `category` reference.
+    /// filtering transactions for `category == nil`. Given `Category`'s
+    /// `.nullify` delete rule, both forms currently produce the same
+    /// result: a deleted category's transactions already have
+    /// `category == nil` by the time any fetch runs. The subtraction form
+    /// is kept anyway as a schema-independent derivation — forward-looking
+    /// insurance against a future change (e.g. archiving categories instead
+    /// of deleting them) that decouples "category still exists" from
+    /// "category is nil on the transaction."
     ///
     /// - Parameter month: Any date within the target month; only its
     ///   year/month component is used — the day is irrelevant.
