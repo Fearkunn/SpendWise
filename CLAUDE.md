@@ -79,6 +79,15 @@ considered, edge-case reasoning) belongs in code comments or the issue
 thread, not the PR description. If the PR body is longer than roughly
 150 words excluding the bullet lists, it's too long — trim it.
 
+## Design Reference
+
+`Design/` (repo root, not part of the app target) contains the Claude
+Design mockup — `SpendWise.dc.html`, `ios-frame.jsx`, `support.js`. For
+any issue that builds or modifies a screen, read these files before
+writing UI code. Issue bodies describe structure and behavior, not visual
+details (colors, spacing, copy text, layout proportions) — those live
+only in the mockup. Match them, not just the written requirements.
+
 ## Verification
 
 A clean build is not enough — it does not catch runtime issues like broken
