@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E8E5DF;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif}
+*{box-sizing:border-box}
+a{color:oklch(.55 .13 250)}a:hover{color:oklch(.45 .13 250)}
+input{font-family:inherit}
+input::placeholder{color:rgba(28,26,23,.28)}
+.sw-scroll::-webkit-scrollbar{width:0;height:0}
+@keyframes swUp{from{transform:translateY(102%)}to{transform:translateY(0)}}
+@keyframes swFade{from{opacity:0}to{opacity:1}}
+@keyframes swPop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+</style>
+</helmet>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ frameW }}" height="{{ frameH }}" hint-size="402px,874px">
+<div style="height:100%;position:relative;overflow:hidden;background:#F4F2EE;color:#1C1A17;font-family:'IBM Plex Sans',system-ui,sans-serif">
+
+<sc-if value="{{ isTx }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;height:100%">
+  <div style="padding:58px 22px 12px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div style="min-width:0">
+        <div style="display:flex;align-items:center;gap:5px;margin-left:-7px">
+          <button onClick="{{ onPrevMonth }}" style="width:22px;height:22px;flex:none;border:0;border-radius:7px;background:rgba(28,26,23,.05);color:#1C1A17;font-size:13px;line-height:1;cursor:pointer;font-family:inherit">‹</button>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.15em;color:rgba(28,26,23,.5)">{{ monthLabelUpper }}</div>
+          <button onClick="{{ onNextMonth }}" style="width:22px;height:22px;flex:none;border:0;border-radius:7px;background:rgba(28,26,23,.05);color:#1C1A17;font-size:13px;line-height:1;cursor:pointer;font-family:inherit">›</button>
+        </div>
+        <div style="font-size:33px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:4px">{{ selMonthTotalText }}</div>
+        <div style="font-size:12.5px;color:rgba(28,26,23,.5);margin-top:2px">{{ selMonthCaption }}</div>
+      </div>
+      <button onClick="{{ onAddTx }}" style="flex:none;margin-top:16px;border:0;border-radius:999px;padding:10px 16px 10px 13px;background:{{ accent }};color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(28,26,23,.18)"><span style="font-size:18px;line-height:1;font-weight:400;margin-top:-2px">+</span>Expense</button>
+    </div>
+  </div>
+
+  <sc-if value="{{ toast }}">
+    <div style="margin:2px 16px 8px;padding:11px 13px;border-radius:12px;background:{{ toastBg }};border:1px solid {{ toastBorder }};display:flex;gap:9px;align-items:center">
+      <div style="flex:none;width:15px;height:15px;border-radius:999px;background:{{ toastMark }};color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ toastGlyph }}</div>
+      <div style="flex:1;font-size:12.5px;line-height:1.4;color:{{ toastColor }}">{{ toastText }}</div>
+      <button onClick="{{ onToastAction }}" style="flex:none;border:0;background:none;padding:0;font-family:inherit;font-size:12.5px;font-weight:600;color:{{ toastColor }};cursor:pointer;text-decoration:underline">{{ toastAction }}</button>
+      <button onClick="{{ onToastDismiss }}" style="flex:none;border:0;background:none;padding:0 0 0 3px;font-family:inherit;font-size:14px;color:{{ toastColor }};opacity:.5;cursor:pointer;line-height:1">×</button>
+    </div>
+  </sc-if>
+
+  <div class="sw-scroll" style="flex:1;overflow-y:auto;padding:0 0 128px">
+    <sc-if value="{{ hasTx }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 22px 8px">
+        <div style="font-size:12px;font-weight:600;color:rgba(28,26,23,.48)">Expenses</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.11em;color:rgba(28,26,23,.3)">{{ txCountLabel }}</div>
+      </div>
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:11px 22px 6px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.11em;color:{{ g.labelColor }}">{{ g.label }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(28,26,23,.3);font-variant-numeric:tabular-nums">{{ g.totalText }}</div>
+          </div>
+          <div style="background:#fff;border-top:1px solid rgba(28,26,23,.07);border-bottom:1px solid rgba(28,26,23,.07)">
+            <sc-for list="{{ g.items }}" as="t" hint-placeholder-count="3">
+              <div style="position:relative;overflow:hidden;background:oklch(.53 .15 28)">
+                <button onPointerDown="{{ t.onDelete }}" style="position:absolute;top:0;right:0;bottom:0;width:96px;border:0;background:oklch(.53 .15 28);color:#fff;font-family:inherit;font-size:12.5px;font-weight:600;letter-spacing:.01em;cursor:pointer;text-align:right;padding-right:22px">Delete</button>
+                <div onPointerDown="{{ t.onDown }}" style="position:relative;background:#fff;transform:translateX({{ t.dx }}px);transition:{{ t.trans }};touch-action:pan-y;cursor:pointer;display:grid;grid-template-columns:9px minmax(0,1fr) auto;column-gap:13px;align-items:center;padding:12px 20px;border-bottom:1px solid rgba(28,26,23,.05)">
+                  <div style="width:9px;height:9px;border-radius:3px;background:{{ t.dotBg }};border:{{ t.dotBorder }}"></div>
+                  <div style="min-width:0">
+                    <div style="font-size:14.5px;font-weight:500;letter-spacing:-.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:{{ t.noteColor }}">{{ t.note }}</div>
+                    <div style="display:flex;align-items:center;gap:6px;margin-top:2px;min-width:0">
+                      <span style="font-size:11.5px;color:{{ t.catColor }};font-weight:{{ t.catWeight }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">{{ t.catName }}</span>
+                      <span style="font-size:11.5px;color:rgba(28,26,23,.2)">·</span>
+                      <span style="font-size:11.5px;color:rgba(28,26,23,.38);white-space:nowrap">{{ t.dateText }}</span>
+                    </div>
+                  </div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;letter-spacing:-.025em">{{ t.amountText }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ jumpPrev }}">
+        <div style="display:flex;justify-content:center;padding:20px 0 0">
+          <button onClick="{{ onJumpPrev }}" style="border:1px solid rgba(28,26,23,.12);border-radius:999px;padding:9px 16px;background:#fff;font-family:inherit;font-size:12.5px;font-weight:600;color:#1C1A17;cursor:pointer">‹ {{ jumpPrevLabel }}</button>
+        </div>
+      </sc-if>
+    </div>
+    </sc-if>
+    <sc-if value="{{ monthNoTx }}">
+      <div style="margin:20px 16px;padding:38px 26px;background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:20px;text-align:center">
+        <div style="width:46px;height:46px;margin:0 auto 16px;border-radius:14px;border:1.5px dashed rgba(28,26,23,.2)"></div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-.01em">Nothing logged in {{ monthLabel }}</div>
+        <div style="font-size:13px;line-height:1.55;color:rgba(28,26,23,.5);margin-top:7px;text-wrap:pretty">{{ monthNoTxHint }}</div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+          <button onClick="{{ onThisMonth }}" style="border:1px solid rgba(28,26,23,.13);border-radius:999px;padding:10px 17px;background:#fff;font-family:inherit;font-size:13px;font-weight:600;color:#1C1A17;cursor:pointer">Back to {{ thisMonthShort }}</button>
+          <sc-if value="{{ jumpPrev }}">
+            <button onClick="{{ onJumpPrev }}" style="border:1px solid rgba(28,26,23,.13);border-radius:999px;padding:10px 17px;background:#fff;font-family:inherit;font-size:13px;font-weight:600;color:#1C1A17;cursor:pointer">‹ {{ jumpPrevLabel }}</button>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noTx }}">
+      <div style="margin:20px 16px;padding:40px 26px;background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:20px;text-align:center">
+        <div style="width:46px;height:46px;margin:0 auto 16px;border-radius:14px;border:1.5px dashed rgba(28,26,23,.2)"></div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-.01em">No expenses yet</div>
+        <div style="font-size:13px;line-height:1.55;color:rgba(28,26,23,.5);margin-top:7px;text-wrap:pretty">Log the first one and this list fills in, newest at the top, grouped by day.</div>
+        <button onClick="{{ onAddTx }}" style="margin-top:18px;border:0;border-radius:999px;padding:11px 20px;background:{{ accent }};color:#fff;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer">Log an expense</button>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isBudget }}">
+<div style="display:flex;flex-direction:column;height:100%">
+  <div style="padding:56px 16px 10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:15px;padding:6px 7px">
+      <button onClick="{{ onPrevMonth }}" style="width:36px;height:36px;border:0;border-radius:11px;background:rgba(28,26,23,.045);color:#1C1A17;font-size:17px;line-height:1;cursor:pointer;font-family:inherit">‹</button>
+      <div style="text-align:center">
+        <div style="font-size:15.5px;font-weight:600;letter-spacing:-.015em">{{ monthLabel }}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.13em;color:rgba(28,26,23,.4);margin-top:2px">{{ monthRel }}</div>
+      </div>
+      <button onClick="{{ onNextMonth }}" style="width:36px;height:36px;border:0;border-radius:11px;background:rgba(28,26,23,.045);color:#1C1A17;font-size:17px;line-height:1;cursor:pointer;font-family:inherit">›</button>
+    </div>
+  </div>
+
+  <div class="sw-scroll" style="flex:1;overflow-y:auto;padding:0 16px 122px">
+    <sc-if value="{{ monthEmpty }}">
+      <div style="margin-top:14px;padding:40px 26px;background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:20px;text-align:center">
+        <div style="width:54px;height:54px;margin:0 auto 16px;border-radius:999px;border:1.5px dashed rgba(28,26,23,.18)"></div>
+        <div style="font-size:16.5px;font-weight:600;letter-spacing:-.01em">Nothing spent in {{ monthLabel }}</div>
+        <div style="font-size:13px;line-height:1.55;color:rgba(28,26,23,.5);margin-top:7px;text-wrap:pretty">Your limits still stand — there's just nothing to measure against them yet.</div>
+        <button onClick="{{ onThisMonth }}" style="margin-top:18px;border:1px solid rgba(28,26,23,.13);border-radius:999px;padding:10px 18px;background:#fff;font-family:inherit;font-size:13px;font-weight:600;color:#1C1A17;cursor:pointer">Back to {{ thisMonthShort }}</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ monthHasSpend }}">
+    <div>
+      <sc-if value="{{ loudBanner }}">
+        <div style="margin-bottom:10px;padding:12px 14px;border-radius:14px;background:oklch(.53 .15 28);color:#fff;display:flex;align-items:center;gap:10px">
+          <div style="flex:none;width:17px;height:17px;border-radius:999px;background:rgba(255,255,255,.22);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">!</div>
+          <div style="font-size:12.5px;font-weight:500;line-height:1.35">{{ loudBanner }}</div>
+        </div>
+      </sc-if>
+
+      <div style="background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:20px;padding:22px 20px 20px">
+        <div style="display:flex;gap:20px;align-items:center">
+          <div style="position:relative;flex:none;width:126px;height:126px">
+            <svg width="126" height="126" viewBox="0 0 126 126" style="transform:rotate(-90deg)">
+              <circle cx="63" cy="63" r="55" fill="none" stroke="rgba(28,26,23,.08)" strokeWidth="13"></circle>
+              <circle cx="63" cy="63" r="55" fill="none" stroke="{{ ringColor }}" strokeWidth="13" strokeLinecap="round" strokeDasharray="{{ ringDash }}"></circle>
+            </svg>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:25px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:{{ ringTextColor }}">{{ totalPctText }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.13em;color:rgba(28,26,23,.4);margin-top:1px">OF BUDGET</div>
+            </div>
+          </div>
+          <div style="min-width:0;flex:1">
+            <div style="font-size:25px;font-weight:600;letter-spacing:-.035em;font-variant-numeric:tabular-nums;line-height:1.05">{{ totalSpentText }}</div>
+            <div style="font-size:12.5px;color:rgba(28,26,23,.5);margin-top:3px">of {{ totalBudgetText }} budgeted</div>
+            <sc-if value="{{ uncatBlock }}">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.09em;color:rgba(28,26,23,.36);margin-top:6px">+ {{ uncatText }} UNCATEGORIZED</div>
+            </sc-if>
+            <div style="margin-top:13px;padding-top:12px;border-top:1px solid rgba(28,26,23,.08)">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;color:rgba(28,26,23,.4)">{{ remainLabel }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:15.5px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.025em;margin-top:2px;color:{{ remainColor }}">{{ remainText }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:20px 4px 9px">
+        <div style="font-size:12px;font-weight:600;color:rgba(28,26,23,.48)">By category</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.11em;color:rgba(28,26,23,.3)">{{ breakdownFoot }}</div>
+      </div>
+
+      <div style="background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:20px;overflow:hidden">
+        <sc-for list="{{ budgetRows }}" as="r" hint-placeholder-count="5">
+          <div style="padding:14px 18px;border-bottom:{{ r.sep }}">
+            <div style="display:grid;grid-template-columns:9px minmax(0,1fr) auto;column-gap:11px;align-items:center">
+              <div style="width:9px;height:9px;border-radius:3px;background:{{ r.color }}"></div>
+              <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.025em;color:{{ r.amountColor }}">{{ r.spentText }}</div>
+            </div>
+            <sc-if value="{{ r.hasLimit }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <div style="position:relative;height:8px;border-radius:99px;background:rgba(28,26,23,.07);margin-top:10px;overflow:hidden">
+                <div style="position:absolute;left:0;top:0;bottom:0;width:{{ r.pctWidth }}%;border-radius:99px;background:{{ r.barColor }}"></div>
+                <div style="position:absolute;left:0;top:0;bottom:0;width:{{ r.hatchWidth }}%;background:{{ r.hatchFill }}"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;gap:10px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:{{ r.statusColor }};font-weight:{{ r.statusWeight }};display:flex;align-items:center;gap:5px">
+                  <sc-if value="{{ r.showFlag }}"><span style="display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;border-radius:3px;background:{{ r.statusColor }};color:#fff;font-size:9px;font-weight:700">!</span></sc-if>
+                  {{ r.statusText }}
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:rgba(28,26,23,.36);font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.limitText }}</div>
+              </div>
+            </div>
+            </sc-if>
+            <sc-if value="{{ r.noLimit }}">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:rgba(28,26,23,.34);margin-top:7px">NO LIMIT SET · TRACKED ONLY</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ uncatBlock }}">
+        <div style="margin-top:12px;padding:14px 18px;border-radius:16px;border:1px dashed rgba(28,26,23,.22);background:rgba(28,26,23,.022)">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+            <div style="display:flex;align-items:center;gap:11px;min-width:0">
+              <div style="width:9px;height:9px;border-radius:3px;border:1.5px dashed rgba(28,26,23,.4)"></div>
+              <div style="font-size:14px;font-weight:500;color:rgba(28,26,23,.62)">Uncategorized</div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums;color:rgba(28,26,23,.62);letter-spacing:-.025em">{{ uncatText }}</div>
+          </div>
+          <div style="font-size:11px;line-height:1.45;color:rgba(28,26,23,.42);margin-top:7px">In your month total, outside the ring and the category limits above.</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ noCatsInBudget }}">
+        <div style="margin-top:12px;padding:22px;border-radius:16px;border:1px dashed rgba(28,26,23,.2);text-align:center">
+          <div style="font-size:13.5px;font-weight:600">No categories to break down</div>
+          <div style="font-size:12px;line-height:1.5;color:rgba(28,26,23,.5);margin-top:5px">Everything logged this month is uncategorized.</div>
+        </div>
+      </sc-if>
+    </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCats }}">
+<div style="display:flex;flex-direction:column;height:100%">
+  <div style="padding:58px 22px 12px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+      <div style="min-width:0">
+        <div style="font-size:28px;font-weight:600;letter-spacing:-.025em;line-height:1.1">Categories</div>
+        <div style="font-size:12.5px;color:rgba(28,26,23,.5);margin-top:4px">{{ catsSubtitle }}</div>
+      </div>
+      <button onClick="{{ onAddCat }}" style="flex:none;border:1px solid rgba(28,26,23,.13);border-radius:999px;padding:9px 15px 9px 12px;background:#fff;color:#1C1A17;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"><span style="font-size:17px;line-height:1;font-weight:400;margin-top:-2px">+</span>New</button>
+    </div>
+  </div>
+  <div class="sw-scroll" style="flex:1;overflow-y:auto;padding:6px 0 128px">
+    <sc-if value="{{ hasCats }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="display:flex;align-items:center;gap:5px;padding:0 22px 9px">
+        <button onClick="{{ onPrevMonth }}" style="width:22px;height:22px;flex:none;border:0;border-radius:7px;background:rgba(28,26,23,.05);color:#1C1A17;font-size:13px;line-height:1;cursor:pointer;font-family:inherit">‹</button>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:rgba(28,26,23,.42)">{{ catsMonthNote }}</div>
+        <button onClick="{{ onNextMonth }}" style="width:22px;height:22px;flex:none;border:0;border-radius:7px;background:rgba(28,26,23,.05);color:#1C1A17;font-size:13px;line-height:1;cursor:pointer;font-family:inherit">›</button>
+      </div>
+      <div style="background:#fff;border-top:1px solid rgba(28,26,23,.07);border-bottom:1px solid rgba(28,26,23,.07)">
+        <sc-for list="{{ catRows }}" as="c" hint-placeholder-count="6">
+          <div style="position:relative;overflow:hidden;background:oklch(.53 .15 28)">
+            <button onPointerDown="{{ c.onDelete }}" style="position:absolute;top:0;right:0;bottom:0;width:96px;border:0;background:oklch(.53 .15 28);color:#fff;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;text-align:right;padding-right:22px">Delete</button>
+            <div onPointerDown="{{ c.onDown }}" style="position:relative;background:#fff;transform:translateX({{ c.dx }}px);transition:{{ c.trans }};touch-action:pan-y;cursor:pointer;padding:13px 20px;border-bottom:1px solid rgba(28,26,23,.05)">
+              <div style="display:grid;grid-template-columns:11px minmax(0,1fr) auto;column-gap:12px;align-items:center">
+                <div style="width:11px;height:11px;border-radius:4px;background:{{ c.color }}"></div>
+                <div style="font-size:14.5px;font-weight:500;letter-spacing:-.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div>
+                <div style="text-align:right;white-space:nowrap">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.025em;color:{{ c.amountColor }}">{{ c.spentText }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:rgba(28,26,23,.34);margin-top:1px;font-variant-numeric:tabular-nums">{{ c.limitText }}</div>
+                </div>
+              </div>
+              <sc-if value="{{ c.hasLimit }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;align-items:center;margin-top:9px;padding-left:23px">
+                <div style="position:relative;height:6px;border-radius:99px;background:rgba(28,26,23,.07);overflow:hidden">
+                  <div style="position:absolute;left:0;top:0;bottom:0;width:{{ c.pctWidth }}%;border-radius:99px;background:{{ c.barColor }}"></div>
+                  <div style="position:absolute;left:0;top:0;bottom:0;width:{{ c.hatchWidth }}%;background:{{ c.hatchFill }}"></div>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.05em;font-weight:{{ c.statusWeight }};color:{{ c.statusColor }};white-space:nowrap">{{ c.statusText }}</div>
+              </div>
+              </sc-if>
+              <sc-if value="{{ c.noLimit }}">
+                <div style="margin-top:7px;padding-left:23px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.05em;color:rgba(28,26,23,.32)">NO LIMIT · AMOUNT ONLY</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:16px 22px 0;font-size:11.5px;line-height:1.5;color:rgba(28,26,23,.4);text-wrap:pretty">Deleting a category never deletes its expenses — they move to Uncategorized.</div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ noCats }}">
+      <div style="margin:14px 16px;padding:40px 26px;background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:20px;text-align:center">
+        <div style="display:flex;gap:7px;justify-content:center;margin-bottom:16px">
+          <div style="width:11px;height:11px;border-radius:4px;border:1.5px dashed rgba(28,26,23,.25)"></div>
+          <div style="width:11px;height:11px;border-radius:4px;border:1.5px dashed rgba(28,26,23,.25)"></div>
+          <div style="width:11px;height:11px;border-radius:4px;border:1.5px dashed rgba(28,26,23,.25)"></div>
+        </div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-.01em">Every category is gone</div>
+        <div style="font-size:13px;line-height:1.55;color:rgba(28,26,23,.5);margin-top:7px;text-wrap:pretty">Existing expenses are safe — they're all Uncategorized now, and still count toward your month total. Add a category to start setting limits again.</div>
+        <button onClick="{{ onAddCat }}" style="margin-top:18px;border:0;border-radius:999px;padding:11px 20px;background:{{ accent }};color:#fff;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer">Add a category</button>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<div style="position:absolute;left:0;right:0;bottom:0;padding:0 16px 26px;pointer-events:none;background:linear-gradient(to top,#F4F2EE 62%,rgba(244,242,238,0))">
+  <div style="pointer-events:auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:rgba(255,255,255,.86);backdrop-filter:blur(18px);border:1px solid rgba(28,26,23,.08);border-radius:18px;padding:5px;box-shadow:0 6px 22px rgba(28,26,23,.1)">
+    <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="3">
+      <button onClick="{{ tab.onClick }}" style="border:0;border-radius:14px;padding:9px 4px 8px;background:{{ tab.bg }};color:{{ tab.color }};font-family:inherit;font-size:11.5px;font-weight:{{ tab.weight }};cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px">
+        <span style="width:15px;height:15px;border-radius:{{ tab.iconRadius }};border:1.5px solid {{ tab.color }};background:{{ tab.iconFill }};display:block"></span>
+        {{ tab.label }}
+      </button>
+    </sc-for>
+  </div>
+</div>
+
+<sc-if value="{{ sheetOpen }}">
+<div style="position:absolute;inset:0;z-index:80">
+  <div onClick="{{ onCancelSheet }}" style="position:absolute;inset:0;background:rgba(28,26,23,.34);animation:swFade .18s ease both"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;top:46px;background:#F4F2EE;border-radius:26px 26px 0 0;box-shadow:0 -8px 40px rgba(28,26,23,.2);animation:swUp .3s cubic-bezier(.22,1,.36,1) both;display:flex;flex-direction:column;overflow:hidden">
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:14px 16px 12px;border-bottom:1px solid rgba(28,26,23,.07)">
+      <button onClick="{{ onCancelSheet }}" style="justify-self:start;border:0;background:none;padding:4px 0;font-family:inherit;font-size:14px;color:rgba(28,26,23,.55);cursor:pointer">Cancel</button>
+      <div style="font-size:15.5px;font-weight:600;letter-spacing:-.01em;white-space:nowrap">{{ sheetTitle }}</div>
+      <button onClick="{{ onSaveSheet }}" style="justify-self:end;border:0;border-radius:999px;padding:8px 16px;background:{{ accent }};color:#fff;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer">{{ sheetSaveLabel }}</button>
+    </div>
+
+    <sc-if value="{{ sheetError }}">
+      <div style="margin:12px 16px 0;padding:12px 13px;border-radius:13px;background:#FAEDE8;border:1px solid rgba(150,60,32,.2);display:flex;gap:9px;align-items:flex-start">
+        <div style="flex:none;width:15px;height:15px;border-radius:999px;background:oklch(.53 .15 28);color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px">!</div>
+        <div style="font-size:12.5px;line-height:1.42;color:oklch(.42 .12 28)">{{ sheetError }}</div>
+      </div>
+    </sc-if>
+
+    <div class="sw-scroll" style="flex:1;overflow-y:auto;padding:16px 16px 40px">
+      <sc-if value="{{ sheetIsTx }}">
+      <div>
+        <div style="background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:18px;padding:20px;text-align:center">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;color:rgba(28,26,23,.4)">AMOUNT</div>
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:4px;margin-top:8px">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:500;color:rgba(28,26,23,.35)">Rp</span>
+            <input value="{{ draftAmount }}" onChange="{{ onAmountChange }}" inputMode="numeric" placeholder="0" style="width:236px;border:0;outline:none;background:none;font-family:'IBM Plex Mono',monospace;font-size:33px;font-weight:600;letter-spacing:-.035em;text-align:center;color:#1C1A17;font-variant-numeric:tabular-nums;padding:0" />
+          </div>
+        </div>
+
+        <div style="margin-top:14px;background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:18px;padding:16px 18px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <div style="font-size:13.5px;font-weight:600">Date</div>
+            <input type="date" value="{{ draftDate }}" onChange="{{ onDateChange }}" style="border:1px solid rgba(28,26,23,.12);border-radius:10px;padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#fff;color:#1C1A17;outline:none" />
+          </div>
+          <div style="display:flex;gap:7px;margin-top:11px">
+            <sc-for list="{{ dateChips }}" as="d" hint-placeholder-count="3">
+              <button onClick="{{ d.onClick }}" style="border:1px solid {{ d.border }};border-radius:999px;padding:6px 12px;background:{{ d.bg }};color:{{ d.color }};font-family:inherit;font-size:11.5px;font-weight:500;cursor:pointer;white-space:nowrap">{{ d.label }}</button>
+            </sc-for>
+          </div>
+          <div style="margin-top:12px;padding-top:11px;border-top:1px solid rgba(28,26,23,.07);display:flex;align-items:center;gap:8px">
+            <span style="width:6px;height:6px;border-radius:999px;background:{{ moveDotColor }};flex:none"></span>
+            <div style="font-size:11.5px;line-height:1.4;color:{{ moveTextColor }};font-weight:{{ moveWeight }}">{{ moveNote }}</div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px;background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:18px;padding:16px 18px">
+          <div style="font-size:13.5px;font-weight:600">Category</div>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:11px">
+            <sc-for list="{{ catChips }}" as="c" hint-placeholder-count="6">
+              <button onClick="{{ c.onClick }}" style="border:1.5px solid {{ c.border }};border-radius:999px;padding:7px 13px 7px 10px;background:{{ c.bg }};color:{{ c.color }};font-family:inherit;font-size:12.5px;font-weight:{{ c.weight }};cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap">
+                <span style="width:8px;height:8px;border-radius:3px;background:{{ c.dotBg }};border:{{ c.dotBorder }};flex:none"></span>{{ c.name }}
+              </button>
+            </sc-for>
+          </div>
+          <sc-if value="{{ noneHint }}">
+            <div style="margin-top:11px;font-size:11.5px;line-height:1.45;color:rgba(28,26,23,.42)">Stays in your list and month total, but sits outside the category breakdown.</div>
+          </sc-if>
+        </div>
+
+        <div style="margin-top:14px;background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:18px;padding:16px 18px">
+          <div style="font-size:13.5px;font-weight:600">Note</div>
+          <input value="{{ draftNote }}" onChange="{{ onNoteChange }}" placeholder="{{ notePlaceholder }}" style="width:100%;margin-top:9px;border:0;border-bottom:1px solid rgba(28,26,23,.13);border-radius:0;padding:6px 0;font-size:14.5px;background:none;outline:none;color:#1C1A17" />
+          <div style="font-size:11.5px;line-height:1.45;color:rgba(28,26,23,.42);margin-top:9px">{{ noteHint }}</div>
+        </div>
+
+        <sc-if value="{{ sheetIsEdit }}">
+          <button onClick="{{ onDeleteFromSheet }}" style="width:100%;margin-top:14px;border:1px solid rgba(150,60,32,.22);border-radius:16px;padding:13px;background:#fff;font-family:inherit;font-size:13.5px;font-weight:600;color:oklch(.5 .15 28);cursor:pointer">Delete this expense</button>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ sheetIsCat }}">
+      <div>
+        <div style="background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:18px;padding:16px 18px">
+          <div style="font-size:13.5px;font-weight:600">Name</div>
+          <input value="{{ draftName }}" onChange="{{ onNameChange }}" placeholder="e.g. Groceries" style="width:100%;margin-top:9px;border:0;border-bottom:1px solid rgba(28,26,23,.13);padding:6px 0;font-size:17px;font-weight:500;background:none;outline:none;color:#1C1A17" />
+        </div>
+
+        <div style="margin-top:14px;background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:18px;padding:16px 18px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+            <div style="font-size:13.5px;font-weight:600">Monthly limit</div>
+            <button onClick="{{ onClearLimit }}" style="border:0;background:none;padding:0;font-family:inherit;font-size:12px;font-weight:600;color:{{ clearColor }};cursor:pointer">Clear</button>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-top:10px;border-bottom:1px solid rgba(28,26,23,.13);padding-bottom:6px">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:rgba(28,26,23,.35)">Rp</span>
+            <input value="{{ draftLimit }}" onChange="{{ onLimitChange }}" inputMode="numeric" placeholder="No limit" style="flex:1;border:0;outline:none;background:none;font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;letter-spacing:-.02em;color:#1C1A17;padding:0;font-variant-numeric:tabular-nums" />
+          </div>
+          <div style="font-size:11.5px;line-height:1.45;color:rgba(28,26,23,.44);margin-top:10px">{{ limitHint }}</div>
+        </div>
+
+        <div style="margin-top:14px;background:#fff;border:1px solid rgba(28,26,23,.08);border-radius:18px;padding:16px 18px">
+          <div style="font-size:13.5px;font-weight:600">Color</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">
+            <sc-for list="{{ colorChoices }}" as="k" hint-placeholder-count="7">
+              <button onClick="{{ k.onClick }}" style="width:34px;height:34px;border-radius:11px;border:2px solid {{ k.ring }};background:{{ k.color }};cursor:pointer;box-shadow:{{ k.shadow }}"></button>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ sheetIsEdit }}">
+          <button onClick="{{ onDeleteFromSheet }}" style="width:100%;margin-top:14px;border:1px solid rgba(150,60,32,.22);border-radius:16px;padding:13px;background:#fff;font-family:inherit;font-size:13.5px;font-weight:600;color:oklch(.5 .15 28);cursor:pointer">Delete category</button>
+        </sc-if>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ confirmOpen }}">
+<div style="position:absolute;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:28px">
+  <div onClick="{{ onCancelConfirm }}" style="position:absolute;inset:0;background:rgba(28,26,23,.4);animation:swFade .16s ease both"></div>
+  <div style="position:relative;width:100%;background:#FFFDFA;border-radius:22px;padding:22px 20px 16px;box-shadow:0 20px 50px rgba(28,26,23,.3);animation:swPop .2s cubic-bezier(.22,1,.36,1) both">
+    <div style="font-size:17px;font-weight:600;letter-spacing:-.01em;text-wrap:pretty">{{ confirmTitle }}</div>
+    <div style="font-size:13px;line-height:1.5;color:rgba(28,26,23,.55);margin-top:8px;text-wrap:pretty">{{ confirmBody }}</div>
+    <sc-if value="{{ confirmError }}">
+      <div style="margin-top:12px;padding:11px 12px;border-radius:12px;background:#FAEDE8;border:1px solid rgba(150,60,32,.2);font-size:12.5px;line-height:1.42;color:oklch(.42 .12 28)">{{ confirmError }}</div>
+    </sc-if>
+    <div style="display:flex;gap:9px;margin-top:18px">
+      <button onClick="{{ onCancelConfirm }}" style="flex:1;border:1px solid rgba(28,26,23,.14);border-radius:14px;padding:12px;background:#fff;font-family:inherit;font-size:14px;font-weight:600;color:#1C1A17;cursor:pointer">Keep it</button>
+      <button onClick="{{ onDoConfirm }}" style="flex:1;border:0;border-radius:14px;padding:12px;background:oklch(.53 .15 28);color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">{{ confirmCta }}</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</x-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:402,&quot;height&quot;:874},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;iPhone 17 · 402×874&quot;,&quot;iPhone Air · 420×912&quot;,&quot;iPhone 17 Pro Max · 440×956&quot;],&quot;default&quot;:&quot;iPhone 17 · 402×874&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Look&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;oklch(.42 .02 60)&quot;,&quot;options&quot;:[&quot;oklch(.42 .02 60)&quot;,&quot;oklch(.55 .13 250)&quot;,&quot;oklch(.5 .12 155)&quot;,&quot;oklch(.53 .15 28)&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Look&quot;},&quot;overStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Distinct color + marker&quot;,&quot;Loud (banner + marker)&quot;],&quot;default&quot;:&quot;Distinct color + marker&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Look&quot;},&quot;dataset&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Rich (3 months)&quot;,&quot;Sparse (one week)&quot;,&quot;First launch (no expenses)&quot;,&quot;No categories (all deleted)&quot;],&quot;default&quot;:&quot;Rich (3 months)&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Prototype state&quot;},&quot;simulateErrors&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Prototype state&quot;}}">
+const TODAY = '2026-09-02';
+const PALETTE = [
+  ['grocery', 'oklch(.62 .12 148)'], ['dining', 'oklch(.62 .12 62)'],
+  ['transport', 'oklch(.62 .12 250)'], ['bills', 'oklch(.62 .12 305)'],
+  ['health', 'oklch(.62 .12 22)'], ['fun', 'oklch(.62 .12 196)'],
+  ['home', 'oklch(.62 .12 105)'], ['slate', 'oklch(.62 .05 260)'],
+];
+const C_OVER = 'oklch(.53 .15 28)';
+const C_AT = 'oklch(.58 .13 78)';
+const INK = '#1C1A17';
+
+const pad = n => String(n).padStart(2, '0');
+const money = n => 'Rp' + Math.round(Math.abs(n)).toLocaleString('id-ID');
+const grp = v => { const s = String(v == null ? '' : v).replace(/[^0-9]/g, ''); return s === '' ? '' : Number(s).toLocaleString('id-ID'); };
+const mkey = d => d.slice(0, 7);
+const MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MON3 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAY3 = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+
+let uid = 0;
+const nid = p => p + '_' + (++uid);
+
+function seedCats() {
+  return [
+    { id: 'c1', name: 'Groceries', limit: 3000000, color: PALETTE[0][1] },
+    { id: 'c2', name: 'Dining out', limit: 1500000, color: PALETTE[1][1] },
+    { id: 'c3', name: 'Transport', limit: 800000, color: PALETTE[2][1] },
+    { id: 'c4', name: 'Bills & utilities', limit: 2000000, color: PALETTE[3][1] },
+    { id: 'c5', name: 'Health', limit: 600000, color: PALETTE[4][1] },
+    { id: 'c6', name: 'Fun', limit: null, color: PALETTE[5][1] },
+    { id: 'c7', name: 'Home', limit: 1000000, color: PALETTE[6][1] },
+  ];
+}
+
+const RAW = [
+  ['2026-09-02', 28000, 'c2', 'Kopi, warung sebelah'],
+  ['2026-09-02', 25000, null, 'Parkir motor'],
+  ['2026-09-02', 92000, 'c1', 'Susu, telur, roti'],
+  ['2026-09-02', 300000, 'c3', 'Taksi ke bandara'],
+  ['2026-09-02', 250000, 'c5', 'Obat resep'],
+  ['2026-09-01', 850000, 'c1', 'Belanja mingguan'],
+  ['2026-09-01', 320000, 'c2', 'Makan malam dengan Mara'],
+  ['2026-09-01', 500000, 'c3', 'Kartu transit bulanan'],
+  ['2026-09-01', 400000, 'c5', 'Periksa gigi'],
+  ['2026-09-01', 1350000, 'c4', 'Listrik + internet'],
+  ['2026-09-01', 180000, 'c6', 'Tiket bioskop'],
+  ['2026-08-28', 175000, null, 'Tarik tunai'],
+  ['2026-08-27', 365000, 'c2', 'Makan siang tim'],
+  ['2026-08-24', 980000, 'c1', 'Belanja besar sebelum pergi'],
+  ['2026-08-23', 200000, 'c6', 'Panjat dinding'],
+  ['2026-08-21', 210000, 'c7', 'Lampu dan gantungan'],
+  ['2026-08-19', 430000, 'c2', 'Makan malam ulang tahun'],
+  ['2026-08-17', 640000, 'c1', 'Belanja mingguan'],
+  ['2026-08-15', 120000, 'c3', 'Dua kali ojek malam'],
+  ['2026-08-12', 185000, 'c2', 'Pesan antar, malam hujan'],
+  ['2026-08-10', 810000, 'c1', 'Belanja mingguan'],
+  ['2026-08-09', 300000, 'c6', 'Toko piringan hitam'],
+  ['2026-08-08', 135000, 'c5', 'Apotek'],
+  ['2026-08-06', 1200000, 'c7', 'Rak buku'],
+  ['2026-08-05', 290000, 'c2', 'Brunch'],
+  ['2026-08-03', 720000, 'c1', 'Belanja mingguan'],
+  ['2026-08-02', 500000, 'c3', 'Kartu transit bulanan'],
+  ['2026-08-01', 1870000, 'c4', 'Listrik + internet'],
+  ['2026-07-26', 265000, 'c2', 'Malam pizza'],
+  ['2026-07-22', 1220000, 'c1', 'Belanja, ada tamu menginap'],
+  ['2026-07-20', 25000, 'c3', 'Sekali naik bus'],
+  ['2026-07-18', 330000, 'c2', 'Makan malam, tempat biasa'],
+  ['2026-07-16', 750000, 'c6', 'Tiket festival'],
+  ['2026-07-13', 590000, 'c1', 'Belanja mingguan'],
+  ['2026-07-11', 430000, 'c7', 'Rel gorden'],
+  ['2026-07-10', 8500000, 'c7', 'Sofa, sudah diantar'],
+  ['2026-07-07', 275000, 'c2', 'Makan malam dengan Ren'],
+  ['2026-07-04', 845000, 'c1', 'Belanja mingguan'],
+  ['2026-07-02', 1790000, 'c4', 'Listrik + internet'],
+  ['2026-07-01', 500000, 'c3', 'Kartu transit bulanan'],
+];
+
+function seedTx(scenario) {
+  if (scenario === 'First launch (no expenses)') return [];
+  const rows = scenario === 'Sparse (one week)' ? RAW.slice(0, 6) : RAW;
+  return rows.map(([date, amount, cat, note]) => ({ id: nid('t'), date, amount, cat, note }));
+}
+
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    const scenario = p.dataset || 'Rich (3 months)';
+    this.state = {
+      tab: 'tx',
+      cats: scenario === 'No categories (all deleted)' ? [] : seedCats(),
+      txns: seedTx(scenario),
+      sel: { y: 2026, m: 8 },
+      sheet: null,
+      confirm: null,
+      swipe: null,
+      toast: '',
+      failedOnce: {},
+    };
+    this._drag = null;
+  }
+
+  componentDidUpdate(prev) {
+    if (prev.dataset !== this.props.dataset) {
+      const sc = this.props.dataset || 'Rich (3 months)';
+      this.setState({
+        cats: sc === 'No categories (all deleted)' ? [] : seedCats(),
+        txns: seedTx(sc), sheet: null, confirm: null, swipe: null, toast: '', failedOnce: {},
+      });
+    }
+  }
+
+  componentDidMount() {
+    this._move = e => {
+      if (!this._drag) return;
+      const dx = e.clientX - this._drag.x;
+      if (Math.abs(dx) > 4) this._drag.moved = true;
+      const clamped = Math.max(-96, Math.min(0, this._drag.base + dx));
+      this.setState({ swipe: { kind: this._drag.kind, id: this._drag.id, dx: clamped, live: true } });
+    };
+    this._up = () => {
+      const d = this._drag;
+      if (!d) return;
+      this._drag = null;
+      const s = this.state.swipe;
+      if (!d.moved) {
+        if (d.base < -40) this.setState({ swipe: null });
+        else this.openEditor(d.kind, d.id);
+        return;
+      }
+      const dx = s && s.id === d.id ? s.dx : 0;
+      this.setState({ swipe: dx < -46 ? { kind: d.kind, id: d.id, dx: -96, live: false } : null });
+    };
+    window.addEventListener('pointermove', this._move);
+    window.addEventListener('pointerup', this._up);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('pointermove', this._move);
+    window.removeEventListener('pointerup', this._up);
+  }
+
+  down(kind, id) {
+    return e => {
+      const s = this.state.swipe;
+      this._drag = { kind, id, x: e.clientX, base: s && s.id === id ? s.dx : 0, moved: false };
+    };
+  }
+
+  // ── derived ─────────────────────────────────────────────
+  catById(id) { return this.state.cats.find(c => c.id === id) || null; }
+  spendIn(key, catId) {
+    return this.state.txns.reduce((a, t) => (mkey(t.date) === key && t.cat === catId ? a + t.amount : a), 0);
+  }
+  selKey() { return this.state.sel.y + '-' + pad(this.state.sel.m + 1); }
+
+  status(spent, limit) {
+    if (limit == null) return 'none';
+    if (spent > limit + 0.0001) return 'over';
+    if (Math.abs(spent - limit) < 0.0001 && spent > 0) return 'at';
+    return 'under';
+  }
+  statusColor(st, base) {
+    if (st === 'over') return C_OVER;
+    if (st === 'at') return C_AT;
+    return base;
+  }
+
+  // ── mutations ───────────────────────────────────────────
+  openEditor(kind, id) {
+    this.setState({ swipe: null });
+    if (kind === 'tx') {
+      const t = this.state.txns.find(x => x.id === id);
+      if (!t) return;
+      this.setState({ sheet: { kind: 'tx', mode: 'edit', id, error: '', draft: { amount: String(t.amount), date: t.date, cat: t.cat, note: t.note } } });
+    } else {
+      const c = this.catById(id);
+      if (!c) return;
+      this.setState({ sheet: { kind: 'cat', mode: 'edit', id, error: '', draft: { name: c.name, limit: c.limit == null ? '' : String(c.limit), color: c.color } } });
+    }
+  }
+  patch(k, v) {
+    this.setState(s => ({ sheet: { ...s.sheet, draft: { ...s.sheet.draft, [k]: v } } }));
+  }
+  shouldFail(key) {
+    if (!this.props.simulateErrors) return false;
+    if (this.state.failedOnce[key]) return false;
+    this.setState(s => ({ failedOnce: { ...s.failedOnce, [key]: true } }));
+    return true;
+  }
+  save() {
+    const sh = this.state.sheet;
+    if (!sh) return;
+    if (sh.kind === 'tx') {
+      const amt = parseFloat(String(sh.draft.amount).replace(/[^0-9]/g, ''));
+      if (!amt || amt <= 0) return this.setState({ sheet: { ...sh, error: 'Enter an amount greater than Rp0.' } });
+      if (!sh.draft.date) return this.setState({ sheet: { ...sh, error: 'Pick a date for this expense.' } });
+      if (this.shouldFail('save')) return this.setState({ sheet: { ...sh, error: "Couldn't save — the change is still on this device only. Try again." } });
+      const rec = { amount: Math.round(amt), date: sh.draft.date, cat: sh.draft.cat, note: (sh.draft.note || '').trim() };
+      this.setState(s => ({
+        txns: sh.mode === 'new' ? [{ id: nid('t'), ...rec }, ...s.txns] : s.txns.map(t => (t.id === sh.id ? { ...t, ...rec } : t)),
+        sheet: null,
+        sel: { y: Number(rec.date.slice(0, 4)), m: Number(rec.date.slice(5, 7)) - 1 },
+      }));
+    } else {
+      const name = (sh.draft.name || '').trim();
+      if (!name) return this.setState({ sheet: { ...sh, error: 'Give the category a name.' } });
+      const dup = this.state.cats.some(c => c.id !== sh.id && c.name.trim().toLowerCase() === name.toLowerCase());
+      if (dup) return this.setState({ sheet: { ...sh, error: '“' + name + '” already exists. Two categories with the same name make the picker ambiguous.' } });
+      const digits = String(sh.draft.limit).replace(/[^0-9]/g, '');
+      let lim = digits === '' ? null : parseFloat(digits);
+      if (lim === 0) lim = null;
+      if (this.shouldFail('save')) return this.setState({ sheet: { ...sh, error: "Couldn't save — the change is still on this device only. Try again." } });
+      const rec = { name, limit: lim, color: sh.draft.color };
+      this.setState(s => ({
+        cats: sh.mode === 'new' ? [...s.cats, { id: nid('c'), ...rec }] : s.cats.map(c => (c.id === sh.id ? { ...c, ...rec } : c)),
+        sheet: null,
+      }));
+    }
+  }
+  askDeleteCat(id) {
+    const c = this.catById(id);
+    if (!c) return;
+    const n = this.state.txns.filter(t => t.cat === id).length;
+    this.setState({ swipe: null, sheet: null, confirm: { kind: 'cat', id, name: c.name, count: n, error: '' } });
+  }
+  deleteTx(id) {
+    const gone = this.state.txns.find(t => t.id === id);
+    if (this.shouldFail('del')) {
+      this.setState({ swipe: null, toast: { kind: 'error', text: "Couldn't delete that expense. It's still here — try again.", id } });
+      return;
+    }
+    this.setState(s => ({
+      txns: s.txns.filter(t => t.id !== id),
+      swipe: null, sheet: null, confirm: null,
+      toast: { kind: 'undo', text: 'Expense deleted.', rec: gone },
+    }));
+  }
+  undoDelete() {
+    const t = this.state.toast;
+    if (!t || !t.rec) return;
+    this.setState(s => ({
+      txns: [t.rec, ...s.txns],
+      toast: '',
+      sel: { y: Number(t.rec.date.slice(0, 4)), m: Number(t.rec.date.slice(5, 7)) - 1 },
+    }));
+  }
+  doConfirm() {
+    const c = this.state.confirm;
+    if (!c) return;
+    if (this.shouldFail('delcat')) return this.setState({ confirm: { ...c, error: "Couldn't delete — nothing has changed. Try again." } });
+    this.setState(s => ({
+      cats: s.cats.filter(x => x.id !== c.id),
+      txns: s.txns.map(t => (t.cat === c.id ? { ...t, cat: null } : t)),
+      confirm: null,
+      sheet: null,
+    }));
+  }
+
+  renderVals() {
+    const s = this.state;
+    const relMonths = (s.sel.y - 2026) * 12 + (s.sel.m - 8);
+    const key = this.selKey();
+    const accent = this.props.accent || 'oklch(.55 .13 250)';
+    const dev = this.props.device || 'iPhone 17 · 402×874';
+    const frameW = dev.indexOf('440') > -1 ? 440 : dev.indexOf('420') > -1 ? 420 : 402;
+    const frameH = dev.indexOf('956') > -1 ? 956 : dev.indexOf('912') > -1 ? 912 : 874;
+    const mode = this.props.overStyle || 'Distinct color + marker';
+    const sw = s.swipe;
+    const trans = sw && sw.live ? 'none' : 'transform .24s cubic-bezier(.2,.9,.25,1)';
+    const dxOf = (kind, id) => (sw && sw.kind === kind && sw.id === id ? sw.dx : 0);
+
+    // Transactions
+    const sorted = s.txns.filter(t => mkey(t.date) === key).sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? 1 : -1));
+    const gmap = [];
+    sorted.forEach(t => {
+      let g = gmap.find(x => x.date === t.date);
+      if (!g) { g = { date: t.date, items: [], total: 0 }; gmap.push(g); }
+      g.total += t.amount;
+      const c = this.catById(t.cat);
+      const d = parse(t.date);
+      g.items.push({
+        id: t.id,
+        note: t.note ? t.note : '—',
+        noteColor: t.note ? INK : 'rgba(28,26,23,.32)',
+        amountText: money(t.amount),
+        catName: c ? c.name : 'Uncategorized',
+        catColor: c ? 'rgba(28,26,23,.5)' : 'rgba(28,26,23,.4)',
+        catWeight: c ? 500 : 400,
+        dotBg: c ? c.color : 'transparent',
+        dotBorder: c ? '0' : '1.5px dashed rgba(28,26,23,.38)',
+        dateText: DAY3[d.getDay()] + ' ' + d.getDate() + ' ' + MON3[d.getMonth()],
+        dx: dxOf('tx', t.id),
+        trans,
+        onDown: this.down('tx', t.id),
+        onDelete: () => this.deleteTx(t.id),
+      });
+    });
+    const groups = gmap.map(g => {
+      const d = parse(g.date);
+      const isToday = g.date === TODAY;
+      const yest = new Date(parse(TODAY)); yest.setDate(yest.getDate() - 1);
+      const isYest = g.date === yest.getFullYear() + '-' + pad(yest.getMonth() + 1) + '-' + pad(yest.getDate());
+      const future = g.date > TODAY;
+      let label = DAY3[d.getDay()].toUpperCase() + ' ' + d.getDate() + ' ' + MON3[d.getMonth()].toUpperCase();
+      if (isToday) label = 'TODAY';
+      else if (isYest) label = 'YESTERDAY';
+      if (future) label += ' · UPCOMING';
+      return { label, labelColor: isToday || future ? accent : 'rgba(28,26,23,.42)', totalText: money(g.total), items: g.items };
+    });
+
+    const earlier = s.txns.map(t => mkey(t.date)).filter(k => k < key).sort();
+    const prevKey = earlier.length ? earlier[earlier.length - 1] : null;
+    const keyOf = k => ({ y: Number(k.slice(0, 4)), m: Number(k.slice(5)) - 1 });
+
+    // Budget month
+    const monthTx = s.txns.filter(t => mkey(t.date) === key);
+    const monthTotal = monthTx.reduce((a, t) => a + t.amount, 0);
+    const catIds = s.cats.map(c => c.id);
+    const monthSpent = monthTx.reduce((a, t) => (t.cat != null && catIds.indexOf(t.cat) > -1 ? a + t.amount : a), 0);
+    const totalBudget = s.cats.reduce((a, c) => a + (c.limit || 0), 0);
+    const pct = totalBudget > 0 ? (monthSpent / totalBudget) * 100 : 0;
+    const totalSt = this.status(monthSpent, totalBudget > 0 ? totalBudget : null);
+    const C = 2 * Math.PI * 55;
+    const ringPct = Math.min(pct, 100);
+    const ringColor = totalSt === 'over' ? this.statusColor('over', accent) : totalSt === 'at' ? this.statusColor('at', accent) : accent;
+
+    const budgetRows = s.cats.map((c, i) => {
+      const spent = this.spendIn(key, c.id);
+      const st = this.status(spent, c.limit);
+      const p = c.limit ? (spent / c.limit) * 100 : 0;
+      const col = this.statusColor(st, c.color);
+      let statusText = '';
+      if (st === 'over') statusText = money(spent - c.limit) + ' OVER · ' + Math.round(p) + '%';
+      else if (st === 'at') statusText = 'AT LIMIT · 100%';
+      else if (spent === 0) statusText = 'NOTHING SPENT YET';
+      else statusText = Math.round(p) + '% USED · ' + money(c.limit - spent) + ' LEFT';
+      return {
+        name: c.name,
+        color: c.color,
+        spentText: money(spent),
+        amountColor: st === 'over' || st === 'at' ? col : INK,
+        hasLimit: c.limit != null,
+        noLimit: c.limit == null,
+        pctWidth: Math.min(p, 100),
+        hatchWidth: st === 'over' || st === 'at' ? 100 : 0,
+        hatchFill: st === 'over'
+          ? 'repeating-linear-gradient(115deg,rgba(255,255,255,.45) 0 3px,transparent 3px 7px)'
+          : 'repeating-linear-gradient(90deg,rgba(255,255,255,.5) 0 1.5px,transparent 1.5px 6px)',
+        barColor: col,
+        statusColor: st === 'over' || st === 'at' ? col : 'rgba(28,26,23,.4)',
+        statusWeight: st === 'over' || st === 'at' ? 600 : 400,
+        showFlag: mode === 'Loud (banner + marker)' && (st === 'over' || st === 'at'),
+        statusText,
+        limitText: 'LIMIT ' + money(c.limit || 0),
+        sep: i === s.cats.length - 1 ? '0' : '1px solid rgba(28,26,23,.06)',
+      };
+    });
+    const uncat = monthTotal - monthSpent;
+    const overCount = budgetRows.filter(r => r.statusText.indexOf('OVER') > -1).length;
+
+    // Categories tab
+    const catRows = s.cats.map(c => {
+      const spent = this.spendIn(key, c.id);
+      const st = this.status(spent, c.limit);
+      const p = c.limit ? (spent / c.limit) * 100 : 0;
+      const col = this.statusColor(st, c.color);
+      let statusText = '';
+      if (st === 'over') statusText = 'OVER BY ' + money(spent - c.limit);
+      else if (st === 'at') statusText = 'AT LIMIT';
+      else if (spent === 0) statusText = 'UNTOUCHED';
+      else statusText = Math.round(p) + '%';
+      return {
+        id: c.id, name: c.name, color: c.color,
+        spentText: money(spent),
+        amountColor: st === 'over' || st === 'at' ? col : INK,
+        limitText: c.limit == null ? 'no limit' : 'of ' + money(c.limit),
+        hasLimit: c.limit != null, noLimit: c.limit == null,
+        pctWidth: Math.min(p, 100), hatchWidth: st === 'over' || st === 'at' ? 100 : 0,
+        hatchFill: st === 'over'
+          ? 'repeating-linear-gradient(115deg,rgba(255,255,255,.45) 0 3px,transparent 3px 7px)'
+          : 'repeating-linear-gradient(90deg,rgba(255,255,255,.5) 0 1.5px,transparent 1.5px 6px)',
+        barColor: col,
+        statusColor: st === 'over' || st === 'at' ? col : 'rgba(28,26,23,.38)',
+        statusWeight: st === 'over' || st === 'at' ? 600 : 400,
+        statusText,
+        dx: dxOf('cat', c.id), trans,
+        onDown: this.down('cat', c.id),
+        onDelete: () => this.askDeleteCat(c.id),
+      };
+    });
+
+    const tabs = [['tx', 'Transactions'], ['budget', 'Budget'], ['cats', 'Categories']].map(([k, label], i) => {
+      const on = s.tab === k;
+      return {
+        label, onClick: () => this.setState({ tab: k, swipe: null }),
+        bg: on ? 'rgba(28,26,23,.055)' : 'transparent',
+        color: on ? INK : 'rgba(28,26,23,.42)',
+        weight: on ? 600 : 500,
+        iconRadius: i === 1 ? '999px' : i === 2 ? '5px' : '3px',
+        iconFill: on ? (i === 0 ? 'currentColor' : 'transparent') : 'transparent',
+      };
+    });
+
+    // Sheet
+    const sh = s.sheet;
+    const d = sh ? sh.draft : {};
+    let vals = {};
+    if (sh && sh.kind === 'tx') {
+      const dk = d.date ? mkey(d.date) : key;
+      const dd = d.date ? parse(d.date) : parse(TODAY);
+      const sameMonth = dk === key;
+      const future = d.date > TODAY;
+      const yest = new Date(parse(TODAY)); yest.setDate(yest.getDate() - 1);
+      const yestStr = yest.getFullYear() + '-' + pad(yest.getMonth() + 1) + '-' + pad(yest.getDate());
+      const chip = (label, date) => ({
+        label, onClick: () => this.patch('date', date),
+        bg: d.date === date ? INK : '#fff',
+        color: d.date === date ? '#fff' : 'rgba(28,26,23,.6)',
+        border: d.date === date ? INK : 'rgba(28,26,23,.13)',
+      });
+      const lastMonth = new Date(parse(TODAY)); lastMonth.setMonth(lastMonth.getMonth() - 1);
+      vals = {
+        draftAmount: grp(d.amount), draftDate: d.date, draftNote: d.note,
+        onAmountChange: e => this.patch('amount', e.target.value),
+        onDateChange: e => this.patch('date', e.target.value),
+        onNoteChange: e => this.patch('note', e.target.value),
+        dateChips: relMonths === 0
+          ? [chip('Today', TODAY), chip('Yesterday', yestStr), chip('End of ' + MON3[lastMonth.getMonth()], lastMonth.getFullYear() + '-' + pad(lastMonth.getMonth() + 1) + '-' + pad(new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 0).getDate()))]
+          : [chip('First of ' + MON3[s.sel.m], s.sel.y + '-' + pad(s.sel.m + 1) + '-01'), chip('Last of ' + MON3[s.sel.m], s.sel.y + '-' + pad(s.sel.m + 1) + '-' + pad(new Date(s.sel.y, s.sel.m + 1, 0).getDate())), chip('Today', TODAY)],
+        moveNote: future
+          ? 'Dated ahead — counts toward ' + MON[dd.getMonth()] + ' ' + dd.getFullYear() + ' once that month arrives.'
+          : sameMonth
+            ? 'Counts toward your ' + MON[dd.getMonth()] + ' ' + dd.getFullYear() + ' budget — the month you are viewing.'
+            : 'Leaves ' + MON[s.sel.m] + ' ' + s.sel.y + ' — it will count toward ' + MON[dd.getMonth()] + ' ' + dd.getFullYear() + ', and the app will jump there on save.',
+        moveDotColor: sameMonth && !future ? 'rgba(28,26,23,.3)' : accent,
+        moveTextColor: sameMonth && !future ? 'rgba(28,26,23,.5)' : accent,
+        moveWeight: sameMonth && !future ? 400 : 600,
+        catChips: [{ id: null, name: 'None', color: null }, ...s.cats].map(c => ({
+          name: c.name,
+          onClick: () => this.patch('cat', c.id),
+          bg: d.cat === c.id ? 'rgba(28,26,23,.045)' : '#fff',
+          border: d.cat === c.id ? INK : 'rgba(28,26,23,.1)',
+          color: INK,
+          weight: d.cat === c.id ? 600 : 500,
+          dotBg: c.color || 'transparent',
+          dotBorder: c.color ? '0' : '1.5px dashed rgba(28,26,23,.38)',
+        })),
+        noneHint: d.cat == null,
+        notePlaceholder: 'Optional',
+        noteHint: d.note
+          ? ''
+          : d.cat == null
+            ? 'Left blank, the row shows a dash and reads as Uncategorized underneath.'
+            : 'Left blank, the row shows a dash — the category name already sits underneath it.',
+      };
+    } else if (sh) {
+      const hasLim = String(d.limit).replace(/[^0-9]/g, '') !== '';
+      vals = {
+        draftName: d.name, draftLimit: grp(d.limit),
+        onNameChange: e => this.patch('name', e.target.value),
+        onLimitChange: e => this.patch('limit', e.target.value),
+        onClearLimit: () => this.patch('limit', ''),
+        clearColor: hasLim ? accent : 'rgba(28,26,23,.25)',
+        limitHint: hasLim
+          ? 'Repeats every month. Spending past it never blocks anything — it just shows as over. Rp0 is saved as no limit.'
+          : 'No limit is a normal setup: spending is tracked and totalled, with no bar or percentage.',
+        colorChoices: PALETTE.map(([, col]) => ({
+          color: col,
+          onClick: () => this.patch('color', col),
+          ring: d.color === col ? INK : 'transparent',
+          shadow: d.color === col ? '0 0 0 2px #fff inset' : 'none',
+        })),
+      };
+    }
+
+    const cf = s.confirm;
+
+    return {
+      accent, frameW, frameH,
+      isTx: s.tab === 'tx', isBudget: s.tab === 'budget', isCats: s.tab === 'cats',
+      tabs,
+      monthLabelUpper: MON[s.sel.m].toUpperCase() + ' ' + s.sel.y,
+      selMonthTotalText: money(monthTotal),
+      selMonthCaption: relMonths === 0 ? 'spent this month, all categories' : 'spent in ' + MON[s.sel.m] + ' ' + s.sel.y + ', all categories',
+      groups,
+      hasTx: sorted.length > 0,
+      noTx: s.txns.length === 0,
+      monthNoTx: s.txns.length > 0 && sorted.length === 0,
+      monthNoTxHint: prevKey
+        ? 'Earlier months are still here — step back, or add an expense dated in this one.'
+        : 'Nothing here yet — add an expense dated in this month, or jump back to ' + MON[8] + ' 2026.',
+      txCountLabel: sorted.length + (sorted.length === 1 ? ' EXPENSE' : ' EXPENSES'),
+      jumpPrev: !!prevKey,
+      jumpPrevLabel: prevKey ? MON[keyOf(prevKey).m] + ' ' + keyOf(prevKey).y : '',
+      onJumpPrev: () => { if (prevKey) this.setState({ sel: keyOf(prevKey), swipe: null }); },
+      toast: s.toast,
+      toastText: s.toast ? s.toast.text : '',
+      toastAction: s.toast && s.toast.kind === 'undo' ? 'Undo' : 'Retry',
+      toastGlyph: s.toast && s.toast.kind === 'undo' ? '✓' : '!',
+      toastBg: s.toast && s.toast.kind === 'undo' ? 'rgba(28,26,23,.045)' : '#FAEDE8',
+      toastBorder: s.toast && s.toast.kind === 'undo' ? 'rgba(28,26,23,.1)' : 'rgba(150,60,32,.2)',
+      toastMark: s.toast && s.toast.kind === 'undo' ? 'rgba(28,26,23,.45)' : C_OVER,
+      toastColor: s.toast && s.toast.kind === 'undo' ? 'rgba(28,26,23,.62)' : 'oklch(.42 .12 28)',
+      onToastDismiss: () => this.setState({ toast: '' }),
+      onToastAction: () => {
+        const t = s.toast;
+        if (!t) return;
+        if (t.kind === 'undo') return this.undoDelete();
+        this.setState({ toast: '' });
+        this.deleteTx(t.id);
+      },
+      onAddTx: () => {
+        const lastDay = new Date(s.sel.y, s.sel.m + 1, 0).getDate();
+        const d0 = relMonths === 0 ? TODAY : s.sel.y + '-' + pad(s.sel.m + 1) + '-' + pad(lastDay);
+        this.setState({ swipe: null, sheet: { kind: 'tx', mode: 'new', error: '', draft: { amount: '', date: d0, cat: s.cats.length ? s.cats[0].id : null, note: '' } } });
+      },
+      onAddCat: () => {
+        const used = s.cats.map(c => c.color);
+        const free = PALETTE.map(p => p[1]).filter(col => used.indexOf(col) === -1);
+        const pick = free.length ? free[0] : PALETTE[s.cats.length % PALETTE.length][1];
+        this.setState({ swipe: null, sheet: { kind: 'cat', mode: 'new', error: '', draft: { name: '', limit: '', color: pick } } });
+      },
+
+      monthLabel: MON[s.sel.m] + ' ' + s.sel.y,
+      monthRel: relMonths === 0 ? 'THIS MONTH' : relMonths === -1 ? 'LAST MONTH' : relMonths === 1 ? 'NEXT MONTH' : relMonths < 0 ? Math.abs(relMonths) + ' MONTHS AGO' : relMonths + ' MONTHS AHEAD',
+      onPrevMonth: () => this.setState(st => ({ sel: st.sel.m === 0 ? { y: st.sel.y - 1, m: 11 } : { y: st.sel.y, m: st.sel.m - 1 } })),
+      onNextMonth: () => this.setState(st => ({ sel: st.sel.m === 11 ? { y: st.sel.y + 1, m: 0 } : { y: st.sel.y, m: st.sel.m + 1 } })),
+      onThisMonth: () => this.setState({ sel: { y: 2026, m: 8 } }),
+      thisMonthShort: MON3[8] + ' 2026',
+      monthEmpty: monthTx.length === 0, monthHasSpend: monthTx.length > 0,
+      ringDash: (C * ringPct / 100).toFixed(1) + ' ' + C.toFixed(1),
+      ringColor, ringTextColor: totalSt === 'over' ? this.statusColor('over', INK) : INK,
+      totalPctText: totalBudget > 0 ? Math.round(pct) + '%' : '—',
+      totalSpentText: money(monthSpent),
+      totalBudgetText: money(totalBudget),
+      remainLabel: monthSpent > totalBudget ? 'OVER BUDGET BY' : 'LEFT TO SPEND',
+      remainText: money(totalBudget - monthSpent),
+      remainColor: monthSpent > totalBudget ? this.statusColor('over', INK) : INK,
+      breakdownFoot: s.cats.length + ' CATEGORIES',
+      budgetRows, noCatsInBudget: s.cats.length === 0,
+      uncatBlock: uncat > 0, uncatText: money(uncat),
+      loudBanner: mode === 'Loud (banner + marker)' && overCount > 0
+        ? overCount === 1 ? 'One category is over its limit this month.' : overCount + ' categories are over their limits this month.'
+        : '',
+
+      catsSubtitle: s.cats.length === 0 ? 'None yet' : s.cats.length + ' categories · ' + money(totalBudget) + ' in monthly limits',
+      catsMonthNote: 'SPEND SHOWN FOR ' + MON[s.sel.m].toUpperCase() + ' ' + s.sel.y,
+      catRows, hasCats: s.cats.length > 0, noCats: s.cats.length === 0,
+
+      sheetOpen: !!sh,
+      sheetIsTx: !!sh && sh.kind === 'tx',
+      sheetIsCat: !!sh && sh.kind === 'cat',
+      sheetIsEdit: !!sh && sh.mode === 'edit',
+      sheetTitle: sh ? (sh.kind === 'tx' ? (sh.mode === 'new' ? 'New expense' : 'Edit expense') : (sh.mode === 'new' ? 'New category' : 'Edit category')) : '',
+      sheetSaveLabel: sh && sh.mode === 'new' ? 'Add' : 'Save',
+      sheetError: sh ? sh.error : '',
+      onCancelSheet: () => this.setState({ sheet: null }),
+      onSaveSheet: () => this.save(),
+      onDeleteFromSheet: () => {
+        if (!sh) return;
+        if (sh.kind === 'cat') this.askDeleteCat(sh.id);
+        else this.deleteTx(sh.id);
+      },
+      ...vals,
+
+      confirmOpen: !!cf,
+      confirmTitle: cf ? 'Delete “' + cf.name + '”?' : '',
+      confirmBody: cf
+        ? cf.count === 0
+          ? 'No expenses use this category, so nothing else changes. The limit is removed from your total budget.'
+          : cf.count + (cf.count === 1 ? ' expense becomes' : ' expenses become') + ' Uncategorized. They stay in your list and month totals, but drop out of the category breakdown.'
+        : '',
+      confirmCta: 'Delete category',
+      confirmError: cf ? cf.error : '',
+      onCancelConfirm: () => this.setState({ confirm: null }),
+      onDoConfirm: () => this.doConfirm(),
+    };
+  }
+}
+</script>
+</body>
+</html>
