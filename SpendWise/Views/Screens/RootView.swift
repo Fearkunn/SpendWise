@@ -34,7 +34,7 @@ struct RootView: View {
 
             TabView(selection: $selectedTab) {
                 ForEach(AppTab.allCases) { tab in
-                    TabPlaceholderView(tab: tab, selectedMonth: $selectedMonth)
+                    tabContent(for: tab)
                         .tag(tab)
                 }
             }
@@ -45,6 +45,19 @@ struct RootView: View {
     }
 
     // MARK: - Subviews
+
+    /// Each tab's real content, where it exists — currently just
+    /// Transactions (#12). Budget (#18) and Categories (#15) still show
+    /// `TabPlaceholderView` until their own screens land.
+    @ViewBuilder
+    private func tabContent(for tab: AppTab) -> some View {
+        switch tab {
+        case .transactions:
+            TransactionsView(selectedMonth: $selectedMonth)
+        case .budget, .categories:
+            TabPlaceholderView(tab: tab, selectedMonth: $selectedMonth)
+        }
+    }
 
     /// The pill tab bar, anchored to the bottom with a soft upward
     /// gradient behind it so content scrolling underneath fades out rather

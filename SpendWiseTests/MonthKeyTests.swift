@@ -129,6 +129,11 @@ struct MonthKeyTests {
         #expect(key.labelUppercased == "SEPTEMBER 2026")
     }
 
+    @Test func shortLabelFormatsAbbreviatedMonthAndYear() {
+        let key = MonthKey(year: 2026, month: 9)
+        #expect(key.shortLabel == "Sep 2026")
+    }
+
     @Test func relativeLabelIsThisMonthForCurrentMonth() {
         #expect(MonthKey.current.relativeLabel == "THIS MONTH")
     }
@@ -149,6 +154,20 @@ struct MonthKeyTests {
     @Test func relativeLabelCountsMonthsAheadBeyondOneMonthAhead() {
         let twoMonthsAhead = MonthKey.current.next().next()
         #expect(twoMonthsAhead.relativeLabel == "2 MONTHS AHEAD")
+    }
+
+    // MARK: - Aggregation Bridge
+
+    @Test func startOfMonthIsTheFirstDayOfTheMonthAtMidnight() {
+        let key = MonthKey(year: 2026, month: 9)
+        let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: key.startOfMonth)
+
+        #expect(components.year == 2026)
+        #expect(components.month == 9)
+        #expect(components.day == 1)
+        #expect(components.hour == 0)
+        #expect(components.minute == 0)
+        #expect(components.second == 0)
     }
 
     // MARK: - Helpers
