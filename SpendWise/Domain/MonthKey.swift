@@ -101,6 +101,14 @@ struct MonthKey: Hashable, Comparable {
         DateLabelFormatter.shortMonthLabel(for: startOfMonth)
     }
 
+    /// The abbreviated month name alone, with no year, e.g. `Sep` — used by
+    /// the expense sheet's quick-select date chips (e.g. "First of Sep",
+    /// "End of Aug"), which never need the year since they're always
+    /// relative to the month currently being viewed.
+    var monthAbbreviation: String {
+        DateLabelFormatter.monthAbbreviation(for: startOfMonth)
+    }
+
     /// A label relative to the current calendar month, e.g. `THIS MONTH`,
     /// `LAST MONTH`, `NEXT MONTH`, or `N MONTHS AGO` / `N MONTHS AHEAD`.
     var relativeLabel: String {
@@ -132,6 +140,21 @@ struct MonthKey: Hashable, Comparable {
         // to a valid Gregorian month (1...12), so reconstructing a date
         // from them cannot fail.
         return Calendar.current.date(from: components)!
+    }
+
+    /// The last day of this calendar month, at the start of that day, per
+    /// the device's current calendar.
+    ///
+    /// Used by the expense sheet: it's both the default date for a new
+    /// expense added while viewing a non-current month (so the new expense
+    /// lands inside the month being viewed rather than vanishing from the
+    /// filtered list), and the "Last of [month]" quick-select date chip.
+    var lastDayOfMonth: Date {
+        // Safe: `next().startOfMonth` is always a valid, reconstructible
+        // date (see `startOfMonth`'s own safety note), and subtracting one
+        // day from the first moment of the next month always lands on a
+        // real moment within *this* month, so this cannot fail.
+        Calendar.current.date(byAdding: .day, value: -1, to: next().startOfMonth)!
     }
 
     /// Integer floor division — unlike `/`, this rounds toward negative

@@ -10,11 +10,18 @@ import SwiftUI
 /// future-dated days, and an accent tint for both today's and any upcoming
 /// group) showing that day's subtotal, followed by every transaction dated
 /// that day.
+///
+/// Each row is tappable (#13): tapping opens the shared expense sheet in
+/// edit mode, pre-filled with that transaction's data. `TransactionRow`
+/// itself stays presentation-only — the tap gesture and its callback live
+/// here instead, matching the project's convention of keeping row
+/// components free of behavior.
 struct TransactionDayGroupSection: View {
 
     // MARK: - Properties
 
     let group: TransactionDayGroup
+    let onSelect: (Transaction) -> Void
 
     // MARK: - Body
 
@@ -22,6 +29,8 @@ struct TransactionDayGroupSection: View {
         Section {
             ForEach(group.transactions) { transaction in
                 TransactionRow(transaction: transaction)
+                    .contentShape(Rectangle())
+                    .onTapGesture { onSelect(transaction) }
             }
         } header: {
             HStack {
@@ -61,6 +70,6 @@ struct TransactionDayGroupSection: View {
     ])
 
     return List {
-        TransactionDayGroupSection(group: today)
+        TransactionDayGroupSection(group: today, onSelect: { _ in })
     }
 }

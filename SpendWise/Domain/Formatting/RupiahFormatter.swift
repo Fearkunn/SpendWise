@@ -27,6 +27,27 @@ enum RupiahFormatter {
         abs(amount).formatted(.currency(code: "IDR").locale(locale))
     }
 
+    /// Formats raw amount input into thousands-grouped digits for live
+    /// display while the amount field is being typed into — e.g.
+    /// `"1350000"` → `"1.350.000"` — with no `Rp` prefix or currency
+    /// symbol, since the expense sheet renders those as a separate, static
+    /// label next to the field.
+    ///
+    /// Non-digit characters are discarded before formatting, the same way
+    /// `TransactionViewModel.add(amountText:...)` discards them, so what's
+    /// displayed always matches what will actually be parsed on save. This
+    /// method performs no validation of its own (e.g. it happily formats
+    /// `"0"`); the amount is still only accepted or rejected by
+    /// `TransactionViewModel`'s own parsing when the sheet is saved.
+    ///
+    /// - Returns: The grouped digits, or an empty string if `text` contains
+    ///   no digits at all.
+    static func groupedDigits(from text: String) -> String {
+        let digitsOnly = text.filter(\.isNumber)
+        guard let amount = Int(digitsOnly) else { return "" }
+        return amount.formatted(.number.locale(locale))
+    }
+
     // MARK: - Private
 
     /// Fixed to `id_ID` regardless of the device's actual locale. IDR has
