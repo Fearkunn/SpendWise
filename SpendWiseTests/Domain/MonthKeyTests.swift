@@ -170,6 +170,34 @@ struct MonthKeyTests {
         #expect(components.second == 0)
     }
 
+    @Test func lastDayOfMonthIsTheFinalCalendarDayOfTheMonth() {
+        let key = MonthKey(year: 2026, month: 9)
+        let components = Calendar.current.dateComponents([.year, .month, .day], from: key.lastDayOfMonth)
+
+        #expect(components.year == 2026)
+        #expect(components.month == 9)
+        #expect(components.day == 30)
+    }
+
+    @Test func lastDayOfMonthHandlesFebruaryInALeapYear() {
+        let key = MonthKey(year: 2028, month: 2)
+        let components = Calendar.current.dateComponents([.year, .month, .day], from: key.lastDayOfMonth)
+
+        #expect(components.day == 29)
+    }
+
+    @Test func lastDayOfMonthHandlesFebruaryInANonLeapYear() {
+        let key = MonthKey(year: 2026, month: 2)
+        let components = Calendar.current.dateComponents([.year, .month, .day], from: key.lastDayOfMonth)
+
+        #expect(components.day == 28)
+    }
+
+    @Test func monthAbbreviationFormatsTheThreeLetterMonthNameWithNoYear() {
+        let key = MonthKey(year: 2026, month: 9)
+        #expect(key.monthAbbreviation == "Sep")
+    }
+
     // MARK: - Helpers
 
     private static func date(year: Int, month: Int, day: Int) -> Date {

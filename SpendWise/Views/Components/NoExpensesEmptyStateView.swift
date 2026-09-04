@@ -8,11 +8,14 @@ import SwiftUI
 /// The Transactions screen's first-launch empty state: shown when no
 /// transaction exists anywhere, in any month.
 ///
-/// The "Log an expense" call to action matches the source design, but #12
-/// is explicitly read-only — adding an expense is #13's scope. The button
-/// is intentionally disabled here rather than wired to open anything or
-/// silently doing nothing when tapped.
+/// The "Log an expense" call to action matches the source design and, as of
+/// #13, opens the add-expense sheet — the same `onAddTx` handler the
+/// mockup shares with the header's "+ Expense" button.
 struct NoExpensesEmptyStateView: View {
+
+    // MARK: - Properties
+
+    let onLogExpense: () -> Void
 
     // MARK: - Body
 
@@ -32,9 +35,8 @@ struct NoExpensesEmptyStateView: View {
                     .multilineTextAlignment(.center)
             }
 
-            Button("Log an expense") {}
+            Button("Log an expense", action: onLogExpense)
                 .buttonStyle(.borderedProminent)
-                .disabled(true)
         }
         .padding(.horizontal, 32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -44,5 +46,5 @@ struct NoExpensesEmptyStateView: View {
 // MARK: - Previews
 
 #Preview {
-    NoExpensesEmptyStateView()
+    NoExpensesEmptyStateView(onLogExpense: {})
 }

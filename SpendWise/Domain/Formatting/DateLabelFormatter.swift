@@ -67,6 +67,11 @@ enum DateLabelFormatter {
         shortMonthYearFormatter.string(from: date)
     }
 
+    /// The abbreviated month name alone, with no year, e.g. `Sep`.
+    static func monthAbbreviation(for date: Date) -> String {
+        monthAbbreviationFormatter.string(from: date)
+    }
+
     /// A month label relative to `referenceDate`'s month: `THIS MONTH`,
     /// `LAST MONTH`, `NEXT MONTH`, or `N MONTHS AGO` / `N MONTHS AHEAD`
     /// for anything further away.
@@ -138,6 +143,15 @@ enum DateLabelFormatter {
         formatter.locale = locale
         formatter.calendar = calendar
         formatter.dateFormat = "MMM yyyy"
+        return formatter
+    }()
+
+    /// Produces e.g. `Sep`.
+    private static let monthAbbreviationFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.calendar = calendar
+        formatter.dateFormat = "MMM"
         return formatter
     }()
 }
