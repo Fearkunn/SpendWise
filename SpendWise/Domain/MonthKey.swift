@@ -95,6 +95,12 @@ struct MonthKey: Hashable, Comparable {
         DateLabelFormatter.monthLabelUppercased(for: startOfMonth)
     }
 
+    /// The abbreviated month and year, e.g. `Sep 2026` — used where the
+    /// mockup calls for a short label, such as a "back to this month" pill.
+    var shortLabel: String {
+        DateLabelFormatter.shortMonthLabel(for: startOfMonth)
+    }
+
     /// A label relative to the current calendar month, e.g. `THIS MONTH`,
     /// `LAST MONTH`, `NEXT MONTH`, or `N MONTHS AGO` / `N MONTHS AHEAD`.
     var relativeLabel: String {

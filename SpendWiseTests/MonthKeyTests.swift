@@ -129,6 +129,11 @@ struct MonthKeyTests {
         #expect(key.labelUppercased == "SEPTEMBER 2026")
     }
 
+    @Test func shortLabelFormatsAbbreviatedMonthAndYear() {
+        let key = MonthKey(year: 2026, month: 9)
+        #expect(key.shortLabel == "Sep 2026")
+    }
+
     @Test func relativeLabelIsThisMonthForCurrentMonth() {
         #expect(MonthKey.current.relativeLabel == "THIS MONTH")
     }

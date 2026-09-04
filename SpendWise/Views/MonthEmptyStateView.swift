@@ -41,8 +41,8 @@ struct MonthEmptyStateView: View {
             }
 
             VStack(spacing: 12) {
-                Button("Back to \(currentMonth.label)", action: onBackToCurrentMonth)
-                    .buttonStyle(.borderedProminent)
+                Button("Back to \(currentMonth.shortLabel)", action: onBackToCurrentMonth)
+                    .buttonStyle(.bordered)
 
                 if let earlierMonth {
                     JumpToPreviousMonthPill(targetMonth: earlierMonth) {
@@ -58,10 +58,10 @@ struct MonthEmptyStateView: View {
     // MARK: - Derived Text
 
     private var bodyText: String {
-        if let earlierMonth {
-            return "You haven't logged anything for \(selectedMonth.label) yet. Add an expense dated here, or step back to catch up on \(earlierMonth.label)."
+        if earlierMonth != nil {
+            return "Earlier months are still here — step back, or add an expense dated in this one."
         } else {
-            return "You haven't logged anything for \(selectedMonth.label) yet. Add an expense dated here to get this month started."
+            return "Nothing here yet — add an expense dated in this month, or jump back to \(currentMonth.label)."
         }
     }
 }

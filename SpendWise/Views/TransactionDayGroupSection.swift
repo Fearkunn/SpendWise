@@ -6,9 +6,10 @@
 import SwiftUI
 
 /// One day's section of the Transactions screen's list: a header (`TODAY`,
-/// `YESTERDAY`, or e.g. `WED 24 AUG`, with a `· UPCOMING` suffix and accent
-/// tint for future-dated days) showing that day's subtotal, followed by
-/// every transaction dated that day.
+/// `YESTERDAY`, or e.g. `WED 24 AUG`, with a `· UPCOMING` suffix for
+/// future-dated days, and an accent tint for both today's and any upcoming
+/// group) showing that day's subtotal, followed by every transaction dated
+/// that day.
 struct TransactionDayGroupSection: View {
 
     // MARK: - Properties
@@ -25,26 +26,28 @@ struct TransactionDayGroupSection: View {
         } header: {
             HStack {
                 Text(DateLabelFormatter.dayHeader(for: group.date))
-                    .foregroundStyle(isUpcoming ? Color.accentColor : Color.secondary)
+                    .font(.caption.weight(.semibold))
+                    .tracking(0.8)
+                    .foregroundStyle(isAccented ? Color.accentColor : Color.secondary)
 
                 Spacer()
 
                 Text(RupiahFormatter.string(from: group.subtotal))
-                    .foregroundStyle(.secondary)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
             }
-            .font(.caption.weight(.semibold))
         }
     }
 
     // MARK: - Derived
 
-    /// Whether `group.date` falls after today, matching the condition
-    /// `DateLabelFormatter.dayHeader(for:)` uses internally to append the
-    /// `· UPCOMING` suffix — recomputed here (rather than parsed back out of
-    /// the formatted string) so the accent tint stays in sync with that
-    /// logic by construction.
-    private var isUpcoming: Bool {
-        Calendar.current.startOfDay(for: group.date) > Calendar.current.startOfDay(for: .now)
+    /// Whether this group's header is tinted with the accent color: today's
+    /// group, or an upcoming (future-dated) group — matching the mockup,
+    /// where both stand out from the plain "earlier day" header color.
+    private var isAccented: Bool {
+        let startOfGroupDate = Calendar.current.startOfDay(for: group.date)
+        let startOfToday = Calendar.current.startOfDay(for: .now)
+        return startOfGroupDate >= startOfToday
     }
 }
 

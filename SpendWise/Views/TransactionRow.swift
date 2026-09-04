@@ -14,7 +14,8 @@ struct TransactionRow: View {
 
     let transaction: Transaction
 
-    private let dotDiameter: CGFloat = 10
+    private let dotDiameter: CGFloat = 9
+    private let dotCornerRadius: CGFloat = 3
 
     // MARK: - Body
 
@@ -42,17 +43,19 @@ struct TransactionRow: View {
 
     // MARK: - Subviews
 
-    /// A filled dot in the category's color, or — for an uncategorized
-    /// transaction — a dashed hollow outline, matching the mockup's visual
-    /// distinction between "has a category" and "doesn't."
+    /// A filled, softly-rounded square in the category's color, or — for an
+    /// uncategorized transaction — a dashed hollow outline of the same
+    /// shape, matching the mockup's visual distinction between "has a
+    /// category" and "doesn't." (The mockup uses a rounded square here, not
+    /// a circle.)
     @ViewBuilder
     private var colorDot: some View {
         if let category = transaction.category {
-            Circle()
+            RoundedRectangle(cornerRadius: dotCornerRadius)
                 .fill(CategoryColor.color(forToken: category.colorToken))
                 .frame(width: dotDiameter, height: dotDiameter)
         } else {
-            Circle()
+            RoundedRectangle(cornerRadius: dotCornerRadius)
                 .strokeBorder(Color.secondary, style: StrokeStyle(lineWidth: 1.5, dash: [2, 2]))
                 .frame(width: dotDiameter, height: dotDiameter)
         }
@@ -61,8 +64,10 @@ struct TransactionRow: View {
     private var categoryAndDateLine: some View {
         HStack(spacing: 4) {
             Text(categoryName)
-                // Uncategorized rows show "Uncategorized" in lighter
-                // styling than a real category name, per #12.
+                // Uncategorized rows show "Uncategorized" in a lighter
+                // weight and color than a real category name, per #12's
+                // mockup.
+                .fontWeight(transaction.category == nil ? .regular : .medium)
                 .foregroundStyle(transaction.category == nil ? .tertiary : .secondary)
 
             Text("·")

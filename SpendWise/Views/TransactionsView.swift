@@ -53,41 +53,39 @@ struct TransactionsView: View {
     // MARK: - Header
 
     private var header: some View {
-        VStack(spacing: 12) {
-            HStack {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 4) {
                 Button {
                     selectedMonth = selectedMonth.previous()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.headline)
+                        .font(.caption.weight(.semibold))
                 }
 
-                Spacer()
-
-                Text(selectedMonth.label)
-                    .font(.headline)
-
-                Spacer()
+                Text(selectedMonth.labelUppercased)
+                    .font(.caption2.weight(.medium))
+                    .tracking(1.5)
+                    .foregroundStyle(.secondary)
 
                 Button {
                     selectedMonth = selectedMonth.next()
                 } label: {
                     Image(systemName: "chevron.right")
-                        .font(.headline)
+                        .font(.caption.weight(.semibold))
                 }
             }
             .buttonStyle(.plain)
 
-            VStack(spacing: 4) {
-                Text(RupiahFormatter.string(from: monthTotal))
-                    .font(.largeTitle.bold().monospacedDigit())
+            Text(RupiahFormatter.string(from: monthTotal))
+                .font(.largeTitle.bold().monospacedDigit())
 
-                Text(monthSpendCaption)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+            Text(monthSpendCaption)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
-        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
     }
 
     // MARK: - Populated List
@@ -95,10 +93,19 @@ struct TransactionsView: View {
     private var populatedList: some View {
         List {
             Section {
-                Text(countLabelText)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .listRowSeparator(.hidden)
+                HStack {
+                    Text("Expenses")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.secondary)
+
+                    Spacer()
+
+                    Text(countLabelText)
+                        .font(.caption2)
+                        .tracking(0.5)
+                        .foregroundStyle(.tertiary)
+                }
+                .listRowSeparator(.hidden)
             }
 
             ForEach(dayGroups) { group in

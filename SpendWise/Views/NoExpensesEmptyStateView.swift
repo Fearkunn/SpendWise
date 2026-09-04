@@ -26,7 +26,7 @@ struct NoExpensesEmptyStateView: View {
                 Text("No expenses yet")
                     .font(.title3.weight(.semibold))
 
-                Text("Log your first expense to get started — it'll show up here, newest first and grouped by day.")
+                Text("Log the first one and this list fills in, newest at the top, grouped by day.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
