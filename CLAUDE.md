@@ -45,6 +45,13 @@ monthly budget per category, and see spending visualized against budget.
   - Views/Screens/ — full screens, named <Screen>View.swift
   - Views/Components/ — reusable pieces used across more than one screen
     (e.g. BudgetBar, TransactionRow, empty-state views, tab bar pieces)
+- SpendWiseTests/ and SpendWiseUITests/ — mirror the source structure
+  exactly, so a test's location tells you what it tests without opening
+  it: SpendWiseTests/Domain/Errors/, SpendWiseTests/Domain/Formatting/,
+  SpendWiseTests/Domain/<Feature>/, SpendWiseTests/ViewModels/,
+  SpendWiseTests/Views/Components/, SpendWiseTests/Views/Screens/. Do not
+  leave test files flat at SpendWiseTests/ root once more than 2-3
+  accumulate.
 
 ## Do Not
 
