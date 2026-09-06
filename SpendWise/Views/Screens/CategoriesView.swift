@@ -10,16 +10,18 @@ import SwiftData
 /// against its limit for the selected month, plus a header count/limit
 /// summary and a month stepper.
 ///
-/// This is explicitly a read-only-of-destination screen, mirroring #12's
-/// precedent for `TransactionsView`: the add/edit sheet and the delete
-/// confirmation dialog are both out of scope for this issue (a category
-/// delete needs confirmation rather than the Transactions screen's
-/// undo-on-swipe pattern, since it can silently re-home many transactions
-/// to Uncategorized). `onAddCategory`, `onSelectCategory`, and
-/// `onDeleteCategory` are present so the row/button affordances the issue
-/// asks for (tap to edit, swipe to reveal Delete, "+ New") are all wired
-/// up and ready, but default to doing nothing until a future issue builds
-/// those destinations and passes real handlers in.
+/// Adding and editing a category (#16) works by presenting
+/// `CategorySheetView` in add or edit mode via an internal `activeSheet`,
+/// mirroring `TransactionsView`'s identical `ExpenseSheetView` (#13)
+/// wiring exactly. The delete confirmation dialog is still out of scope
+/// (a category delete needs confirmation rather than the Transactions
+/// screen's undo-on-swipe pattern, since it can silently re-home many
+/// transactions to Uncategorized): `onDeleteCategory` is left as a no-op
+/// default for row swipe-to-delete until that dialog exists, matching
+/// #15's original precedent — `CategorySheetView`'s own "Delete category"
+/// button, presented from this same sheet, does not go through this
+/// closure at all; it calls `CategoryViewModel.delete(_:)` directly (see
+/// that view's doc comment for why).
 ///
 /// Per CLAUDE.md, this view reads categories via `@Query` directly and
 /// only reaches for `CategoryViewModel`/`TransactionViewModel` for the
@@ -37,19 +39,12 @@ struct CategoriesView: View {
 
     @Binding var selectedMonth: MonthKey
 
-    /// Handles the "+ New" button and the empty state's "Add a category"
-    /// button. No-op by default — the add/edit sheet is out of scope for
-    /// #15; see this type's doc comment.
-    var onAddCategory: () -> Void = {}
-
-    /// Handles tapping a row to edit it. No-op by default — see
-    /// `onAddCategory`'s doc comment; the same sheet would present both.
-    var onSelectCategory: (Category) -> Void = { _ in }
-
     /// Handles tapping "Delete" after swiping a row. No-op by default —
     /// the confirmation dialog that actually calls
-    /// `CategoryViewModel.delete(_:)` is out of scope for #15.
+    /// `CategoryViewModel.delete(_:)` is out of scope for #15/#16.
     var onDeleteCategory: (Category) -> Void = { _ in }
+
+    @State private var activeSheet: CategorySheetView.Mode?
 
     // MARK: - Body
 
@@ -58,12 +53,15 @@ struct CategoriesView: View {
             header
 
             if categories.isEmpty {
-                EveryCategoryGoneEmptyStateView(onAddCategory: onAddCategory)
+                EveryCategoryGoneEmptyStateView(onAddCategory: { activeSheet = .add })
             } else {
                 populatedList
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .sheet(item: $activeSheet) { mode in
+            CategorySheetView(mode: mode)
+        }
     }
 
     // MARK: - Header
@@ -89,7 +87,7 @@ struct CategoriesView: View {
     }
 
     private var newCategoryButton: some View {
-        Button(action: onAddCategory) {
+        Button { activeSheet = .add } label: {
             HStack(spacing: 6) {
                 Text("+")
                     .font(.system(size: 17))
@@ -121,7 +119,7 @@ struct CategoriesView: View {
                         status: status(for: category)
                     )
                     .contentShape(Rectangle())
-                    .onTapGesture { onSelectCategory(category) }
+                    .onTapGesture { activeSheet = .edit(category) }
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
                             onDeleteCategory(category)

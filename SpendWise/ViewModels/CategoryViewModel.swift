@@ -60,12 +60,17 @@ final class CategoryViewModel {
     ///     used to build the limit. Empty input, non-digit input, and an
     ///     input of exactly `0` all normalize to `nil` ("no limit") — see
     ///     `normalizedLimit(from:)`.
-    /// - Returns: The newly inserted, persisted `Category`, auto-assigned
-    ///   the first unused color from `colorPalette`.
+    ///   - colorToken: An explicit color choice from `CategorySheetView`'s
+    ///     swatch picker (#16), matching the design mockup's interactive
+    ///     "Color" section. `nil` (the default) or any token not in
+    ///     `colorPalette` falls back to the original #9 behavior of
+    ///     auto-assigning the first unused palette color — so every
+    ///     pre-#16 call site is unaffected.
+    /// - Returns: The newly inserted, persisted `Category`.
     /// - Throws: `CategoryValidationError` if validation or the save itself
     ///   fails.
     @discardableResult
-    func add(name: String, monthlyLimitText: String) throws -> Category {
+    func add(name: String, monthlyLimitText: String, colorToken: String? = nil) throws -> Category {
         let validatedName = try requiredName(name)
         try ensureNameIsUnique(validatedName, excluding: nil)
         let limit = normalizedLimit(from: monthlyLimitText)
@@ -73,7 +78,7 @@ final class CategoryViewModel {
         let category = Category(
             name: validatedName,
             monthlyLimit: limit,
-            colorToken: try nextColorToken()
+            colorToken: try resolvedColorToken(colorToken)
         )
         modelContext.insert(category)
 
@@ -95,20 +100,26 @@ final class CategoryViewModel {
     /// Validates the given input and applies it to an existing `Category`,
     /// persisting the change.
     ///
-    /// The category's `colorToken` is left untouched — auto-assignment
-    /// only happens for new categories, per the issue's scope.
-    ///
+    /// - Parameter colorToken: An explicit color choice from
+    ///   `CategorySheetView`'s swatch picker (#16). `nil` (the default)
+    ///   leaves `category.colorToken` untouched, matching #9's original
+    ///   "auto-assignment only happens for new categories" behavior and
+    ///   keeping every pre-#16 call site unaffected. A token not in
+    ///   `colorPalette` is likewise ignored rather than applied.
     /// - Throws: `CategoryValidationError` if validation or the save itself
     ///   fails. On a save failure, the category's in-memory properties may
     ///   still reflect the attempted edit; the caller is responsible for
     ///   deciding how to recover (e.g. re-presenting the form).
-    func update(_ category: Category, name: String, monthlyLimitText: String) throws {
+    func update(_ category: Category, name: String, monthlyLimitText: String, colorToken: String? = nil) throws {
         let validatedName = try requiredName(name)
         try ensureNameIsUnique(validatedName, excluding: category)
         let limit = normalizedLimit(from: monthlyLimitText)
 
         category.name = validatedName
         category.monthlyLimit = limit
+        if let colorToken, Self.colorPalette.contains(colorToken) {
+            category.colorToken = colorToken
+        }
 
         do {
             try modelContext.save()
@@ -209,6 +220,17 @@ final class CategoryViewModel {
             return nil
         }
         return limit
+    }
+
+    /// Resolves the color token a new `Category` should be created with:
+    /// `requested` if it's a real palette token, otherwise the auto-assigned
+    /// `nextColorToken()`. Kept separate from `nextColorToken()` itself so
+    /// the "does this look like a real request?" check stays in one place.
+    private func resolvedColorToken(_ requested: String?) throws -> String {
+        if let requested, Self.colorPalette.contains(requested) {
+            return requested
+        }
+        return try nextColorToken()
     }
 
     /// The first color in `colorPalette` not already assigned to an
