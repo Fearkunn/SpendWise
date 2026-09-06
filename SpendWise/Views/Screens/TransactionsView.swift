@@ -13,11 +13,13 @@ import SwiftData
 /// Adding, editing, and deleting expenses (#13) works by presenting
 /// `ExpenseSheetView` in add or edit mode. Swipe-to-delete and the
 /// undo/retry toast (#14) are also wired here: each row supports the native
-/// `.swipeActions` "Delete" action (see `TransactionDayGroupSection`), but
-/// the actual delete-attempt-and-toast logic lives on `RootView` instead —
-/// the toast has to survive tab switches, so its state can't be scoped to
-/// this view. `onDeleteExpense` is the hook `RootView` passes down to
-/// trigger that flow.
+/// `.swipeActions` "Delete" action (see `TransactionDayGroupSection`), and
+/// the sheet's own "Delete this expense" button reaches the identical flow,
+/// but the actual delete-attempt-and-toast logic lives on `RootView` instead
+/// — the toast has to survive tab switches, so its state can't be scoped to
+/// this view. `onDeleteExpense` is the single hook `RootView` passes down
+/// to trigger that flow, threaded to both the row swipe action and, further
+/// down, into `ExpenseSheetView`.
 ///
 /// Per CLAUDE.md, this view reads data via `@Query` directly and only
 /// reaches for `TransactionViewModel` for the one piece of read state it
@@ -60,7 +62,7 @@ struct TransactionsView: View {
             }
         }
         .sheet(item: $activeSheet) { mode in
-            ExpenseSheetView(mode: mode, selectedMonth: $selectedMonth)
+            ExpenseSheetView(mode: mode, selectedMonth: $selectedMonth, onDeleteExpense: onDeleteExpense)
         }
     }
 
