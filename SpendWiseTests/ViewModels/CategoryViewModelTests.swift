@@ -136,6 +136,22 @@ struct CategoryViewModelTests {
         #expect(category.colorToken == CategoryViewModel.colorPalette[0])
     }
 
+    @Test func addUsesAnExplicitlyRequestedColorToken() throws {
+        let (_, viewModel) = makeSUT()
+
+        let category = try viewModel.add(name: "Groceries", monthlyLimitText: "", colorToken: CategoryViewModel.colorPalette[4])
+
+        #expect(category.colorToken == CategoryViewModel.colorPalette[4])
+    }
+
+    @Test func addFallsBackToAutoAssignmentForAnUnknownColorToken() throws {
+        let (_, viewModel) = makeSUT()
+
+        let category = try viewModel.add(name: "Groceries", monthlyLimitText: "", colorToken: "not-a-real-token")
+
+        #expect(category.colorToken == CategoryViewModel.colorPalette[0])
+    }
+
     // MARK: - Update
 
     @Test func updatePersistsChangesToAnExistingCategory() throws {
@@ -148,12 +164,32 @@ struct CategoryViewModelTests {
         #expect(category.monthlyLimit == 600_000)
     }
 
-    @Test func updateDoesNotChangeTheColorToken() throws {
+    @Test func updateDoesNotChangeTheColorTokenWhenNoneIsRequested() throws {
         let (_, viewModel) = makeSUT()
         let category = try viewModel.add(name: "Groceries", monthlyLimitText: "")
         let originalToken = category.colorToken
 
         try viewModel.update(category, name: "Food", monthlyLimitText: "")
+
+        #expect(category.colorToken == originalToken)
+    }
+
+    @Test func updateAppliesAnExplicitlyRequestedColorToken() throws {
+        let (_, viewModel) = makeSUT()
+        let category = try viewModel.add(name: "Groceries", monthlyLimitText: "", colorToken: CategoryViewModel.colorPalette[0])
+        let newToken = CategoryViewModel.colorPalette[3]
+
+        try viewModel.update(category, name: "Groceries", monthlyLimitText: "", colorToken: newToken)
+
+        #expect(category.colorToken == newToken)
+    }
+
+    @Test func updateIgnoresAnUnknownColorToken() throws {
+        let (_, viewModel) = makeSUT()
+        let category = try viewModel.add(name: "Groceries", monthlyLimitText: "")
+        let originalToken = category.colorToken
+
+        try viewModel.update(category, name: "Groceries", monthlyLimitText: "", colorToken: "not-a-real-token")
 
         #expect(category.colorToken == originalToken)
     }
