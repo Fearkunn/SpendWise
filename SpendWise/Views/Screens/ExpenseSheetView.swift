@@ -52,6 +52,12 @@ struct ExpenseSheetView: View {
 
     @Binding var selectedMonth: MonthKey
 
+    /// The same undo/retry-toast delete flow used by row swipe-delete
+    /// (#14): threaded down from `RootView` via `TransactionsView` so both
+    /// delete entry points call into the single `RootView.attemptDelete(_:)`
+    /// method rather than each capturing/deleting independently.
+    let onDeleteExpense: (Transaction) -> Void
+
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \Category.name) private var categories: [Category]
@@ -71,9 +77,13 @@ struct ExpenseSheetView: View {
     ///     `RootView`. Read to compute a new expense's default date and the
     ///     date chips/month-impact note, and written on a successful save so
     ///     the app jumps to the saved record's month.
-    init(mode: Mode, selectedMonth: Binding<MonthKey>) {
+    ///   - onDeleteExpense: The shared delete-and-toast callback, ultimately
+    ///     backed by `RootView.attemptDelete(_:)`, invoked by the "Delete
+    ///     this expense" button instead of deleting directly.
+    init(mode: Mode, selectedMonth: Binding<MonthKey>, onDeleteExpense: @escaping (Transaction) -> Void) {
         self.mode = mode
         self._selectedMonth = selectedMonth
+        self.onDeleteExpense = onDeleteExpense
 
         switch mode {
         case .add:
@@ -429,12 +439,13 @@ struct ExpenseSheetView: View {
     private func deleteExpense() {
         guard case .edit(let transaction) = mode else { return }
 
-        do {
-            try transactionViewModel.delete(transaction)
-            dismiss()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+        // The snapshot-capture, `TransactionViewModel.delete` call, and
+        // undo/retry toast state all live on `RootView.attemptDelete(_:)` —
+        // the same single path row swipe-delete uses — so this only kicks
+        // that off and dismisses, matching `save()`'s dismiss-on-success
+        // pattern above.
+        onDeleteExpense(transaction)
+        dismiss()
     }
 
     // MARK: - Derived State
@@ -541,7 +552,7 @@ private struct FlowLayout: Layout {
 
 #Preview("New expense") {
     @Previewable @State var selectedMonth: MonthKey = .current
-    ExpenseSheetView(mode: .add, selectedMonth: $selectedMonth)
+    ExpenseSheetView(mode: .add, selectedMonth: $selectedMonth, onDeleteExpense: { _ in })
         .modelContainer(PreviewFixtures.richContainer())
 }
 
@@ -549,6 +560,6 @@ private struct FlowLayout: Layout {
     @Previewable @State var selectedMonth: MonthKey = .current
     let container = PreviewFixtures.richContainer()
     let transaction = try! container.mainContext.fetch(FetchDescriptor<Transaction>()).first!
-    return ExpenseSheetView(mode: .edit(transaction), selectedMonth: $selectedMonth)
+    return ExpenseSheetView(mode: .edit(transaction), selectedMonth: $selectedMonth, onDeleteExpense: { _ in })
         .modelContainer(container)
 }
