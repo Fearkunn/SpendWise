@@ -12,16 +12,21 @@ import SwiftUI
 /// that day.
 ///
 /// Each row is tappable (#13): tapping opens the shared expense sheet in
-/// edit mode, pre-filled with that transaction's data. `TransactionRow`
-/// itself stays presentation-only — the tap gesture and its callback live
-/// here instead, matching the project's convention of keeping row
-/// components free of behavior.
+/// edit mode, pre-filled with that transaction's data. Each row also
+/// supports swipe-to-delete (#14) via the native `.swipeActions` modifier —
+/// a left swipe reveals a destructive "Delete" action that removes the
+/// transaction immediately, with no confirmation dialog (undo, not
+/// confirmation, is how a mistaken delete gets corrected). `TransactionRow`
+/// itself stays presentation-only — the tap gesture, swipe action, and
+/// their callbacks live here instead, matching the project's convention of
+/// keeping row components free of behavior.
 struct TransactionDayGroupSection: View {
 
     // MARK: - Properties
 
     let group: TransactionDayGroup
     let onSelect: (Transaction) -> Void
+    let onDelete: (Transaction) -> Void
 
     // MARK: - Body
 
@@ -31,6 +36,13 @@ struct TransactionDayGroupSection: View {
                 TransactionRow(transaction: transaction)
                     .contentShape(Rectangle())
                     .onTapGesture { onSelect(transaction) }
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            onDelete(transaction)
+                        } label: {
+                            Text("Delete")
+                        }
+                    }
             }
         } header: {
             HStack {
@@ -70,6 +82,6 @@ struct TransactionDayGroupSection: View {
     ])
 
     return List {
-        TransactionDayGroupSection(group: today, onSelect: { _ in })
+        TransactionDayGroupSection(group: today, onSelect: { _ in }, onDelete: { _ in })
     }
 }

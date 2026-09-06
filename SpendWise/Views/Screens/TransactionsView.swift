@@ -11,8 +11,14 @@ import SwiftData
 /// day-grouped, newest-first list of that month's expenses.
 ///
 /// Adding, editing, and deleting expenses (#13) works by presenting
-/// `ExpenseSheetView` in add or edit mode; deletion beyond the sheet's own
-/// "Delete this expense" button (e.g. swipe-to-delete, undo) is #14's scope.
+/// `ExpenseSheetView` in add or edit mode. Swipe-to-delete and the
+/// undo/retry toast (#14) are also wired here: each row supports the native
+/// `.swipeActions` "Delete" action (see `TransactionDayGroupSection`), but
+/// the actual delete-attempt-and-toast logic lives on `RootView` instead —
+/// the toast has to survive tab switches, so its state can't be scoped to
+/// this view. `onDeleteExpense` is the hook `RootView` passes down to
+/// trigger that flow.
+///
 /// Per CLAUDE.md, this view reads data via `@Query` directly and only
 /// reaches for `TransactionViewModel` for the one piece of read state it
 /// doesn't own itself: the month total, via the already-tested
@@ -28,6 +34,7 @@ struct TransactionsView: View {
     @Query(sort: \Transaction.date, order: .reverse) private var allTransactions: [Transaction]
 
     @Binding var selectedMonth: MonthKey
+    let onDeleteExpense: (Transaction) -> Void
 
     @State private var activeSheet: ExpenseSheetView.Mode?
 
@@ -139,7 +146,11 @@ struct TransactionsView: View {
             }
 
             ForEach(dayGroups) { group in
-                TransactionDayGroupSection(group: group, onSelect: { activeSheet = .edit($0) })
+                TransactionDayGroupSection(
+                    group: group,
+                    onSelect: { activeSheet = .edit($0) },
+                    onDelete: onDeleteExpense
+                )
             }
 
             if let nearestEarlierMonthWithData {
@@ -213,18 +224,18 @@ struct TransactionsView: View {
 
 #Preview("Populated") {
     @Previewable @State var selectedMonth: MonthKey = .current
-    TransactionsView(selectedMonth: $selectedMonth)
+    TransactionsView(selectedMonth: $selectedMonth, onDeleteExpense: { _ in })
         .modelContainer(PreviewFixtures.richContainer())
 }
 
 #Preview("Month empty, data elsewhere") {
     @Previewable @State var selectedMonth: MonthKey = MonthKey.current.next()
-    TransactionsView(selectedMonth: $selectedMonth)
+    TransactionsView(selectedMonth: $selectedMonth, onDeleteExpense: { _ in })
         .modelContainer(PreviewFixtures.sparseContainer())
 }
 
 #Preview("No expenses at all") {
     @Previewable @State var selectedMonth: MonthKey = .current
-    TransactionsView(selectedMonth: $selectedMonth)
+    TransactionsView(selectedMonth: $selectedMonth, onDeleteExpense: { _ in })
         .modelContainer(PreviewFixtures.firstLaunchContainer())
 }
