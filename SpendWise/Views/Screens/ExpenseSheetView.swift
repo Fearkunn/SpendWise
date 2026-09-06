@@ -110,13 +110,12 @@ struct ExpenseSheetView: View {
                 }
                 .padding(16)
             }
-            // `AppBackground` (#41), matching the sheet's role as another
-            // full-screen surface stacked on `RootView`'s own canvas — the
-            // mockup's literal sheet-panel hex (`#F4F2EE`) is actually
-            // `AppSurface`'s value, which this file uses instead for the
-            // elevated cards below, preserving the mockup's lighter-cards-
-            // over-backdrop layering rather than its exact absolute hex.
-            .background(Color("AppBackground"))
+            // `AppSurface` (#41) — the mockup's sheet-panel background is the
+            // same literal `#F4F2EE` as every other screen's backdrop, so the
+            // sheet uses the same screen-backdrop token as `RootView` rather
+            // than a distinct one. Card fills below use `AppCard` instead,
+            // matching the mockup's separate literal white (`#fff`) for cards.
+            .background(Color("AppSurface"))
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -221,9 +220,9 @@ struct ExpenseSheetView: View {
                 .padding(.vertical, 6)
                 .background(
                     // Mockup: `bg: d.date === date ? INK : '#fff'` — `AppInk`
-                    // for the selected fill, `AppSurface` for the unselected
+                    // for the selected fill, `AppCard` for the unselected
                     // card-style fill (#41).
-                    Capsule().fill(isSelected ? Color("AppInk") : Color("AppSurface"))
+                    Capsule().fill(isSelected ? Color("AppInk") : Color("AppCard"))
                 )
                 .overlay(
                     // Unselected border stays system `Color.primary.opacity`,
@@ -288,9 +287,9 @@ struct ExpenseSheetView: View {
                 // The selected wash is a deliberate ink tint (not decorative
                 // chrome) — tokenized the same way `AppTabBarButton`'s
                 // selected-segment wash was in #41 (`Color("AppAccent").opacity(0.07)`);
-                // the unselected fill is the same `AppSurface` card
+                // the unselected fill is the same `AppCard` card
                 // treatment used elsewhere in this sheet.
-                Capsule().fill(isSelected ? Color("AppInk").opacity(0.045) : Color("AppSurface"))
+                Capsule().fill(isSelected ? Color("AppInk").opacity(0.045) : Color("AppCard"))
             )
             .overlay(
                 // Mockup: `border: d.cat === c.id ? INK : 'rgba(28,26,23,.1)'`.
@@ -363,7 +362,7 @@ struct ExpenseSheetView: View {
         // error red already tokenized as `BudgetOver`, per #41's own note
         // that the sheet's red UI should reuse it rather than an ad-hoc red.
         .foregroundStyle(Color("BudgetOver"))
-        .background(Color("AppSurface"), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(Color("AppCard"), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .strokeBorder(Color("BudgetOver").opacity(0.22))
@@ -473,13 +472,9 @@ private extension View {
     /// The card background shared by every section of the expense sheet,
     /// matching the mockup's `18px` radius / `1px` hairline-border cards.
     ///
-    /// The mockup's literal card fill is `#fff`, which isn't one of #41's 14
-    /// tokens; `AppSurface` is used instead as the closest defined surface
-    /// color, preserving the mockup's lighter-cards-over-backdrop relationship
-    /// (`AppSurface` is lighter than the sheet's own `AppBackground`) even
-    /// though the absolute hex differs from pure white.
+    /// The mockup's literal card fill is `#fff`, matching `AppCard`.
     func expenseSheetCardBackground() -> some View {
-        background(Color("AppSurface"), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        background(Color("AppCard"), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay(
                 // Hairline card border stays system `Color.primary.opacity`,
                 // matching `BudgetBar`'s track-background precedent for
