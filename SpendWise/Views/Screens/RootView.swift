@@ -108,15 +108,23 @@ struct RootView: View {
 
     // MARK: - Subviews
 
-    /// Each tab's real content, where it exists — currently just
-    /// Transactions (#12). Budget (#18) and Categories (#15) still show
-    /// `TabPlaceholderView` until their own screens land.
+    /// Each tab's real content, where it exists — Transactions (#12) and
+    /// Categories (#15) so far. Budget (#18) still shows
+    /// `TabPlaceholderView` until its own screen lands.
+    ///
+    /// `CategoriesView`'s `onAddCategory`/`onSelectCategory`/`onDeleteCategory`
+    /// are left at their no-op defaults here: the add/edit sheet and the
+    /// delete confirmation dialog are both out of scope for #15, so there's
+    /// nothing yet for this shell to wire them to (see `CategoriesView`'s
+    /// doc comment).
     @ViewBuilder
     private func tabContent(for tab: AppTab) -> some View {
         switch tab {
         case .transactions:
             TransactionsView(selectedMonth: $selectedMonth, onDeleteExpense: attemptDelete)
-        case .budget, .categories:
+        case .categories:
+            CategoriesView(selectedMonth: $selectedMonth)
+        case .budget:
             TabPlaceholderView(tab: tab, selectedMonth: $selectedMonth)
         }
     }
