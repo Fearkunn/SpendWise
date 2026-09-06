@@ -115,9 +115,9 @@ struct RootView: View {
     /// `CategoriesView` now presents its own add/edit sheet internally
     /// (#16), the same way `TransactionsView` owns `ExpenseSheetView` — so
     /// this shell doesn't need to thread anything down for that. Its
-    /// `onDeleteCategory` is left at its no-op default here: the delete
-    /// confirmation dialog is still out of scope, so there's nothing yet to
-    /// wire it to (see `CategoriesView`'s doc comment).
+    /// delete confirmation dialog (#17) is likewise fully self-contained,
+    /// so there's nothing this shell needs to wire for that either (see
+    /// `CategoriesView`'s doc comment).
     @ViewBuilder
     private func tabContent(for tab: AppTab) -> some View {
         switch tab {
