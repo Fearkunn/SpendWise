@@ -10,14 +10,23 @@ import SwiftData
 /// monthly limit field (with a `Clear` action and hint copy explaining the
 /// zero-limit rule), and the 8-swatch color picker.
 ///
-/// Mirrors `ExpenseSheetView`'s (#13) shape and conventions exactly — same
-/// `Mode` enum, same `NavigationStack`/toolbar chrome, same card background
-/// and error-banner styling — since this is the same "bottom sheet with
-/// Cancel / title / Add|Save" pattern applied to a different entity. Per
-/// CLAUDE.md, all validation and persistence stays in `CategoryViewModel`
-/// (#9) — this view only collects raw draft state and hands it to
-/// `add`/`update`/`delete` as-is, surfacing whatever `CategoryValidationError`
-/// comes back in the inline error banner.
+/// Mirrors `ExpenseSheetView`'s (#13) shape and conventions — same `Mode`
+/// enum, same card background and error-banner styling — since this is the
+/// same "bottom sheet with Cancel / title / Add|Save" pattern applied to a
+/// different entity. Per CLAUDE.md, all validation and persistence stays in
+/// `CategoryViewModel` (#9) — this view only collects raw draft state and
+/// hands it to `add`/`update`/`delete` as-is, surfacing whatever
+/// `CategoryValidationError` comes back in the inline error banner.
+///
+/// **Header note (flagged fix, post-#16):** unlike `ExpenseSheetView`, this
+/// does *not* use `NavigationStack` + `.navigationTitle`/`.toolbar`. The
+/// mockup's header (`Design/SpendWise.dc.html`) is a fully custom 3-column
+/// row — plain-text `Cancel`, a centered title, and a solid `AppAccent`
+/// capsule for Save/Add, the same pill treatment as `TransactionsView`'s
+/// "+ Expense" button — not a native nav bar with system-tinted text
+/// buttons. `ExpenseSheetView` ships with this same native-toolbar mismatch,
+/// but fixing it is out of scope here; it was already merged under a
+/// separate, closed issue.
 ///
 /// **Color picker note (flagged deviation from #9's original scope):** the
 /// design mockup (`Design/SpendWise.dc.html`) wires every swatch's `onClick`
@@ -89,7 +98,9 @@ struct CategorySheetView: View {
     // MARK: - Body
 
     var body: some View {
-        NavigationStack {
+        VStack(spacing: 0) {
+            header
+
             ScrollView {
                 VStack(spacing: 14) {
                     if let errorMessage {
@@ -106,20 +117,58 @@ struct CategorySheetView: View {
                 }
                 .padding(16)
             }
-            // `AppSurface` — same screen-backdrop token `ExpenseSheetView`
-            // uses for its own sheet-panel background.
-            .background(Color("AppSurface"))
-            .navigationTitle(title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(saveLabel) { save() }
-                        .fontWeight(.semibold)
-                }
+        }
+        // `AppSurface` — same screen-backdrop token `ExpenseSheetView` uses
+        // for its own sheet-panel background; applied to the whole column
+        // (not just the `ScrollView`) so the custom header below matches it
+        // too, now that there's no native nav bar providing its own fill.
+        .background(Color("AppSurface"))
+    }
+
+    // MARK: - Header
+
+    /// The mockup's custom 3-column header row: `Cancel` pinned leading,
+    /// the title centered, and the Save/Add pill pinned trailing. Both side
+    /// buttons are wrapped in `.frame(maxWidth: .infinity, ...)`, which
+    /// splits the remaining space evenly regardless of each button's own
+    /// width — the SwiftUI equivalent of the mockup's CSS grid
+    /// `1fr auto 1fr`, keeping the title genuinely centered.
+    private var header: some View {
+        HStack(spacing: 0) {
+            Button("Cancel") { dismiss() }
+                .font(.system(size: 14))
+                // `AppInk` at the mockup's `rgba(28,26,23,.55)` opacity,
+                // matching the established `Color("AppInk").opacity(...)`
+                // token convention used elsewhere in this file/screen family.
+                .foregroundStyle(Color("AppInk").opacity(0.55))
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text(title)
+                .font(.system(size: 15.5, weight: .semibold))
+                .lineLimit(1)
+                .fixedSize()
+
+            Button(action: save) {
+                Text(saveLabel)
+                    .font(.system(size: 13.5, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    // `AppAccent` — the same solid capsule treatment as
+                    // `TransactionsView.addExpenseButton`'s "+ Expense" pill.
+                    .background(Capsule().fill(Color("AppAccent")))
             }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .buttonStyle(.plain)
+        .padding(.top, 14)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 12)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(Color.primary.opacity(0.07))
+                .frame(height: 1)
         }
     }
 
