@@ -73,7 +73,7 @@ struct RootView: View {
 
             floatingTabBar
         }
-        .overlay(alignment: .top) {
+        .safeAreaInset(edge: .top) {
             if let pendingExpenseDeletion {
                 ExpenseDeleteToastView(
                     toast: pendingExpenseDeletion.toast,
