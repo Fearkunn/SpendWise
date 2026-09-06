@@ -31,6 +31,10 @@ struct SpendWiseApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                // `AppAccent` (#41) is the app's deliberate warm-grey accent,
+                // replacing the default system blue tint every interactive
+                // control (buttons, symbol images) picks up by default.
+                .tint(Color("AppAccent"))
         }
         .modelContainer(modelContainer)
     }

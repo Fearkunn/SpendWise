@@ -25,14 +25,14 @@ enum CategoryColor {
     /// crashing.
     static func color(forToken token: String) -> Color {
         switch token {
-        case "blue": .blue
-        case "green": .green
-        case "orange": .orange
-        case "red": .red
-        case "purple": .purple
-        case "pink": .pink
-        case "yellow": .yellow
-        case "teal": .teal
+        case "blue": Color("CategoryBlue")
+        case "green": Color("CategoryGreen")
+        case "orange": Color("CategoryOrange")
+        case "red": Color("CategoryRed")
+        case "purple": Color("CategoryPurple")
+        case "pink": Color("CategoryPink")
+        case "yellow": Color("CategoryYellow")
+        case "teal": Color("CategoryTeal")
         default: .gray
         }
     }

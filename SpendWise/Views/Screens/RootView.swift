@@ -29,7 +29,7 @@ struct RootView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            Color(.systemGroupedBackground)
+            Color("AppBackground")
                 .ignoresSafeArea()
 
             TabView(selection: $selectedTab) {
@@ -65,7 +65,7 @@ struct RootView: View {
     private var floatingTabBar: some View {
         VStack(spacing: 0) {
             LinearGradient(
-                colors: [Color(.systemGroupedBackground).opacity(0), Color(.systemGroupedBackground)],
+                colors: [Color("AppBackground").opacity(0), Color("AppBackground")],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -74,7 +74,7 @@ struct RootView: View {
 
             AppTabBar(selectedTab: $selectedTab)
                 .padding(.bottom, 4)
-                .background(Color(.systemGroupedBackground))
+                .background(Color("AppBackground"))
         }
         .ignoresSafeArea(edges: .bottom)
     }

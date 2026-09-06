@@ -137,13 +137,13 @@ struct BudgetBar: View {
         case .under:
             categoryColor
         case .atLimit:
-            // No "amber" system color exists; `.orange` is the closest
-            // built-in, system-adaptive semantic tone, keeping with this
-            // codebase's precedent (issue #10) of preferring system colors
-            // over hardcoded hex where a reasonable one is available.
-            .orange
+            // `BudgetAtLimit`, the app's real amber status color asset
+            // (#41) — replaces the earlier `.orange` stopgap now that the
+            // color-token system exists.
+            Color("BudgetAtLimit")
         case .over:
-            .red
+            // `BudgetOver`, the app's real red status color asset (#41).
+            Color("BudgetOver")
         }
     }
 

@@ -37,7 +37,7 @@ struct AppTabBarButton: View {
 
                 Text(tab.title)
                     .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
-                    .foregroundStyle(isSelected ? Color.primary : Color.secondary)
+                    .foregroundStyle(isSelected ? Color("AppInk") : Color.secondary)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
@@ -54,14 +54,14 @@ struct AppTabBarButton: View {
         let shape = RoundedRectangle(cornerRadius: tab.iconCornerRadius, style: .continuous)
 
         return shape
-            .fill(isSelected ? Color.primary : .clear)
+            .fill(isSelected ? Color("AppAccent") : .clear)
             .overlay(shape.strokeBorder(Color.primary.opacity(isSelected ? 0 : 0.55), lineWidth: 1.5))
             .frame(width: iconSide, height: iconSide)
     }
 
     private var segmentBackground: some View {
         RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .fill(isSelected ? Color.primary.opacity(0.07) : .clear)
+            .fill(isSelected ? Color("AppAccent").opacity(0.07) : .clear)
     }
 }
 
