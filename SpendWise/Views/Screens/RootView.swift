@@ -108,15 +108,16 @@ struct RootView: View {
 
     // MARK: - Subviews
 
-    /// Each tab's real content, where it exists — Transactions (#12) and
-    /// Categories (#15) so far. Budget (#18) still shows
+    /// Each tab's real content, where it exists — Transactions (#12/#13)
+    /// and Categories (#15/#16) so far. Budget (#18) still shows
     /// `TabPlaceholderView` until its own screen lands.
     ///
-    /// `CategoriesView`'s `onAddCategory`/`onSelectCategory`/`onDeleteCategory`
-    /// are left at their no-op defaults here: the add/edit sheet and the
-    /// delete confirmation dialog are both out of scope for #15, so there's
-    /// nothing yet for this shell to wire them to (see `CategoriesView`'s
-    /// doc comment).
+    /// `CategoriesView` now presents its own add/edit sheet internally
+    /// (#16), the same way `TransactionsView` owns `ExpenseSheetView` — so
+    /// this shell doesn't need to thread anything down for that. Its
+    /// `onDeleteCategory` is left at its no-op default here: the delete
+    /// confirmation dialog is still out of scope, so there's nothing yet to
+    /// wire it to (see `CategoriesView`'s doc comment).
     @ViewBuilder
     private func tabContent(for tab: AppTab) -> some View {
         switch tab {
