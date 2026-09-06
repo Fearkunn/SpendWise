@@ -63,6 +63,7 @@ struct CategoriesView: View {
                 populatedList
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     // MARK: - Header
