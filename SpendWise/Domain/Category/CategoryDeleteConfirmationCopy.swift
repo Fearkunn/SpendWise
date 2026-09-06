@@ -19,7 +19,7 @@ enum CategoryDeleteConfirmationCopy {
 
     /// - Parameter categoryName: The name of the category being deleted.
     static func title(categoryName: String) -> String {
-        "Delete \"\(categoryName)\"?"
+        "Delete \u{201C}\(categoryName)\u{201D}?"
     }
 
     // MARK: - Body

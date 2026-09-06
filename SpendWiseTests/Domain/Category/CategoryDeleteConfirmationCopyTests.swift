@@ -15,7 +15,7 @@ struct CategoryDeleteConfirmationCopyTests {
 
     @Test func titleWrapsTheCategoryNameInQuotesWithAQuestionMark() {
         let title = CategoryDeleteConfirmationCopy.title(categoryName: "Dining out")
-        #expect(title == "Delete \"Dining out\"?")
+        #expect(title == "Delete \u{201C}Dining out\u{201D}?")
     }
 
     // MARK: - Body: Zero Expenses
