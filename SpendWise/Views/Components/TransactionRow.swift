@@ -26,7 +26,7 @@ struct TransactionRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(noteText)
                     .font(.body)
-                    .foregroundStyle(transaction.note.isEmpty ? .secondary : .primary)
+                    .foregroundStyle(transaction.note.isEmpty ? .secondary : Color("AppInk"))
 
                 categoryAndDateLine
             }
@@ -36,7 +36,7 @@ struct TransactionRow: View {
             Text(RupiahFormatter.string(from: transaction.amount))
                 .font(.callout.monospacedDigit())
                 .fontWeight(.medium)
-                .foregroundStyle(.primary)
+                .foregroundStyle(Color("AppInk"))
         }
         .padding(.vertical, 6)
     }

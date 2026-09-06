@@ -28,7 +28,7 @@ struct TabPlaceholderView: View {
         VStack(spacing: 20) {
             Text(tab.title)
                 .font(.largeTitle.bold())
-                .foregroundStyle(.primary)
+                .foregroundStyle(Color("AppInk"))
 
             Text("Screen content lands in a later issue.")
                 .font(.subheadline)

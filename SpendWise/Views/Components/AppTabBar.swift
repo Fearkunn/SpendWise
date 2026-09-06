@@ -54,7 +54,7 @@ struct AppTabBar: View {
     @Previewable @State var selectedTab: AppTab = .transactions
 
     ZStack(alignment: .bottom) {
-        Color(.systemGroupedBackground).ignoresSafeArea()
+        Color("AppBackground").ignoresSafeArea()
         AppTabBar(selectedTab: $selectedTab)
     }
 }

@@ -28,7 +28,7 @@ struct TransactionDayGroupSection: View {
                 Text(DateLabelFormatter.dayHeader(for: group.date))
                     .font(.caption.weight(.semibold))
                     .tracking(0.8)
-                    .foregroundStyle(isAccented ? Color.accentColor : Color.secondary)
+                    .foregroundStyle(isAccented ? Color("AppAccent") : Color.secondary)
 
                 Spacer()
 
