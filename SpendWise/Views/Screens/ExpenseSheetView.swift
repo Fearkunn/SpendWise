@@ -110,7 +110,13 @@ struct ExpenseSheetView: View {
                 }
                 .padding(16)
             }
-            .background(Color(.systemGroupedBackground))
+            // `AppBackground` (#41), matching the sheet's role as another
+            // full-screen surface stacked on `RootView`'s own canvas — the
+            // mockup's literal sheet-panel hex (`#F4F2EE`) is actually
+            // `AppSurface`'s value, which this file uses instead for the
+            // elevated cards below, preserving the mockup's lighter-cards-
+            // over-backdrop layering rather than its exact absolute hex.
+            .background(Color("AppBackground"))
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -177,14 +183,19 @@ struct ExpenseSheetView: View {
             Divider()
 
             HStack(spacing: 8) {
+                // `AppAccent` (#41) for the emphasized state, matching the
+                // mockup's `accent`-bound dot/text; the muted default state
+                // stays system `.secondary`, mirroring
+                // `TransactionDayGroupSection`'s identical accent-vs-muted
+                // pattern from #41's first wiring pass.
                 Circle()
-                    .fill(monthImpactNote.isEmphasized ? Color.accentColor : Color.secondary.opacity(0.5))
+                    .fill(monthImpactNote.isEmphasized ? Color("AppAccent") : Color.secondary.opacity(0.5))
                     .frame(width: 6, height: 6)
 
                 Text(monthImpactNote.text)
                     .font(.caption)
                     .fontWeight(monthImpactNote.isEmphasized ? .semibold : .regular)
-                    .foregroundStyle(monthImpactNote.isEmphasized ? Color.accentColor : .secondary)
+                    .foregroundStyle(monthImpactNote.isEmphasized ? Color("AppAccent") : .secondary)
             }
         }
         .padding(.horizontal, 18)
@@ -199,14 +210,25 @@ struct ExpenseSheetView: View {
             date = chip.date
         } label: {
             Text(chip.label)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(isSelected ? Color(.systemBackground) : .secondary)
+                // Mockup: `color: d.date === date ? '#fff' : rgba(28,26,23,.6)`.
+                // The selected case is literal white text over a solid ink
+                // fill — a contrast color, not a themed surface/ink token —
+                // matching `BudgetBar.hatchStripeColor`'s established
+                // precedent for literal on-fill colors; the unselected case
+                // stays system `.secondary`.
+                .foregroundStyle(isSelected ? Color.white : .secondary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(
-                    Capsule().fill(isSelected ? Color.primary : Color(.systemBackground))
+                    // Mockup: `bg: d.date === date ? INK : '#fff'` — `AppInk`
+                    // for the selected fill, `AppSurface` for the unselected
+                    // card-style fill (#41).
+                    Capsule().fill(isSelected ? Color("AppInk") : Color("AppSurface"))
                 )
                 .overlay(
+                    // Unselected border stays system `Color.primary.opacity`,
+                    // matching `AppTabBarButton`'s icon-border precedent of
+                    // leaving faint default hairlines untokenized.
                     Capsule().strokeBorder(isSelected ? Color.clear : Color.primary.opacity(0.13))
                 )
         }
@@ -254,16 +276,28 @@ struct ExpenseSheetView: View {
 
                 Text(name)
                     .font(.caption.weight(isSelected ? .semibold : .medium))
-                    .foregroundStyle(.primary)
+                    // Mockup: `color: INK` for every chip regardless of
+                    // selection — `AppInk` (#41).
+                    .foregroundStyle(Color("AppInk"))
             }
             .padding(.leading, 10)
             .padding(.trailing, 13)
             .padding(.vertical, 7)
             .background(
-                Capsule().fill(isSelected ? Color.primary.opacity(0.045) : Color(.systemBackground))
+                // Mockup: `bg: d.cat === c.id ? 'rgba(28,26,23,.045)' : '#fff'`.
+                // The selected wash is a deliberate ink tint (not decorative
+                // chrome) — tokenized the same way `AppTabBarButton`'s
+                // selected-segment wash was in #41 (`Color("AppAccent").opacity(0.07)`);
+                // the unselected fill is the same `AppSurface` card
+                // treatment used elsewhere in this sheet.
+                Capsule().fill(isSelected ? Color("AppInk").opacity(0.045) : Color("AppSurface"))
             )
             .overlay(
-                Capsule().strokeBorder(isSelected ? Color.primary : Color.primary.opacity(0.1), lineWidth: 1.5)
+                // Mockup: `border: d.cat === c.id ? INK : 'rgba(28,26,23,.1)'`.
+                // Selected border is full-strength ink; unselected stays the
+                // system default hairline, matching `AppTabBarButton`'s
+                // untouched icon-border precedent.
+                Capsule().strokeBorder(isSelected ? Color("AppInk") : Color.primary.opacity(0.1), lineWidth: 1.5)
             )
         }
         .buttonStyle(.plain)
@@ -324,11 +358,15 @@ struct ExpenseSheetView: View {
                 .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 13)
-        .foregroundStyle(Color.red)
-        .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        // `BudgetOver` (#41) — the mockup's delete text/border red
+        // (`oklch(.5 .15 28)` / `rgba(150,60,32,...)`) is the same designed
+        // error red already tokenized as `BudgetOver`, per #41's own note
+        // that the sheet's red UI should reuse it rather than an ad-hoc red.
+        .foregroundStyle(Color("BudgetOver"))
+        .background(Color("AppSurface"), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.red.opacity(0.22))
+                .strokeBorder(Color("BudgetOver").opacity(0.22))
         )
     }
 
@@ -340,17 +378,24 @@ struct ExpenseSheetView: View {
                 .font(.system(size: 10.5, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(width: 15, height: 15)
-                .background(Circle().fill(Color.red))
+                // `BudgetOver` (#41) — mockup's `oklch(.53 .15 28)` marker
+                // fill is the exact OKLCH value already converted to
+                // `BudgetOver`.
+                .background(Circle().fill(Color("BudgetOver")))
 
             Text(message)
                 .font(.caption)
-                .foregroundStyle(Color.red)
+                .foregroundStyle(Color("BudgetOver"))
         }
         .padding(12)
-        .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+        // Mockup's `#FAEDE8` banner tint and `rgba(150,60,32,...)` border are
+        // the same pre-token error red family; approximated here via
+        // `BudgetOver` at the pre-existing opacities rather than introducing
+        // a second, un-tokenized red literal.
+        .background(Color("BudgetOver").opacity(0.08), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .strokeBorder(Color.red.opacity(0.2))
+                .strokeBorder(Color("BudgetOver").opacity(0.2))
         )
     }
 
@@ -425,12 +470,21 @@ struct ExpenseSheetView: View {
 // MARK: - Card Background
 
 private extension View {
-    /// The white, softly-rounded card background shared by every section of
-    /// the expense sheet, matching the mockup's `#fff` / `18px` radius /
-    /// `1px` hairline-border cards.
+    /// The card background shared by every section of the expense sheet,
+    /// matching the mockup's `18px` radius / `1px` hairline-border cards.
+    ///
+    /// The mockup's literal card fill is `#fff`, which isn't one of #41's 14
+    /// tokens; `AppSurface` is used instead as the closest defined surface
+    /// color, preserving the mockup's lighter-cards-over-backdrop relationship
+    /// (`AppSurface` is lighter than the sheet's own `AppBackground`) even
+    /// though the absolute hex differs from pure white.
     func expenseSheetCardBackground() -> some View {
-        background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        background(Color("AppSurface"), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay(
+                // Hairline card border stays system `Color.primary.opacity`,
+                // matching `BudgetBar`'s track-background precedent for
+                // leaving purely structural, non-state-dependent opacity
+                // washes untokenized.
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .strokeBorder(Color.primary.opacity(0.08))
             )
