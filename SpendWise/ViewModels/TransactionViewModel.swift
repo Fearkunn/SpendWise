@@ -152,6 +152,29 @@ final class TransactionViewModel {
             .reduce(0) { $0 + $1.amount }
     }
 
+    /// The all-time number of expenses currently assigned to a category,
+    /// regardless of month.
+    ///
+    /// Unlike `spent(in:categoryID:)`, this is deliberately not month-scoped:
+    /// the category delete confirmation flow (#17) needs the total count of
+    /// expenses that would become Uncategorized across every month the
+    /// category has ever been used in, not just the currently selected one.
+    ///
+    /// - Parameter categoryID: The persistent identifier of the category to
+    ///   count expenses for.
+    /// - Throws: If the underlying fetch fails.
+    func count(categoryID: PersistentIdentifier) throws -> Int {
+        let transactions: [Transaction]
+        do {
+            transactions = try modelContext.fetch(FetchDescriptor<Transaction>())
+        } catch {
+            logger.error("Failed to fetch transactions for category-count aggregation: \(error.localizedDescription)")
+            throw error
+        }
+
+        return transactions.filter { $0.category?.persistentModelID == categoryID }.count
+    }
+
     /// Spend in the calendar month containing `month` that isn't
     /// attributed to any live category.
     ///

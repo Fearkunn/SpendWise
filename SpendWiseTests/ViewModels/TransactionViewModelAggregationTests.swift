@@ -12,7 +12,8 @@ import Foundation
 
 /// Covers `TransactionViewModel`'s month-scoped aggregation:
 /// `monthTotal(in:)`, `spent(in:categoryID:)`, and
-/// `uncategorizedTotal(in:)`.
+/// `uncategorizedTotal(in:)` — plus the all-time (not month-scoped)
+/// `count(categoryID:)`.
 @MainActor
 struct TransactionViewModelAggregationTests {
 
@@ -191,6 +192,57 @@ struct TransactionViewModelAggregationTests {
 
         #expect(uncategorized == monthTotal)
         #expect(uncategorized == 100_000)
+    }
+
+    // MARK: - count(categoryID:)
+
+    @Test func countIsZeroWhenTheCategoryHasNoTransactions() throws {
+        let (context, viewModel) = makeSUT()
+        let groceries = Category(name: "Groceries", colorToken: "green")
+        context.insert(groceries)
+
+        let count = try viewModel.count(categoryID: groceries.persistentModelID)
+
+        #expect(count == 0)
+    }
+
+    @Test func countIsOneForASingleMatchingTransaction() throws {
+        let (context, viewModel) = makeSUT()
+        let groceries = Category(name: "Groceries", colorToken: "green")
+        context.insert(groceries)
+        insertTransaction(50_000, on: try date(year: 2026, month: 9, day: 1), category: groceries, in: context)
+
+        let count = try viewModel.count(categoryID: groceries.persistentModelID)
+
+        #expect(count == 1)
+    }
+
+    @Test func countSumsAcrossEveryMonthNotJustTheCurrentlySelectedOne() throws {
+        let (context, viewModel) = makeSUT()
+        let groceries = Category(name: "Groceries", colorToken: "green")
+        context.insert(groceries)
+        insertTransaction(50_000, on: try date(year: 2026, month: 9, day: 1), category: groceries, in: context)
+        insertTransaction(60_000, on: try date(year: 2026, month: 6, day: 15), category: groceries, in: context)
+        insertTransaction(70_000, on: try date(year: 2025, month: 1, day: 1), category: groceries, in: context)
+
+        let count = try viewModel.count(categoryID: groceries.persistentModelID)
+
+        #expect(count == 3)
+    }
+
+    @Test func countOnlyIncludesTheGivenCategorysTransactions() throws {
+        let (context, viewModel) = makeSUT()
+        let groceries = Category(name: "Groceries", colorToken: "green")
+        let transport = Category(name: "Transport", colorToken: "blue")
+        context.insert(groceries)
+        context.insert(transport)
+        insertTransaction(50_000, on: try date(year: 2026, month: 9, day: 1), category: groceries, in: context)
+        insertTransaction(60_000, on: try date(year: 2026, month: 9, day: 2), category: transport, in: context)
+        insertTransaction(70_000, on: try date(year: 2026, month: 9, day: 3), category: nil, in: context)
+
+        let count = try viewModel.count(categoryID: groceries.persistentModelID)
+
+        #expect(count == 1)
     }
 
     // MARK: - SUT Factory

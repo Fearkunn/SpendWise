@@ -48,6 +48,18 @@ import SwiftData
 /// logic in the View; simply starting on the first swatch avoids that
 /// duplication; a small change to the ViewModel to also expose that
 /// property is skipped to remain in scope for this issue.
+///
+/// **Delete handoff (#17):** `deleteButton` no longer calls
+/// `CategoryViewModel.delete(_:)` itself. Category deletion always needs a
+/// confirmation dialog with count-aware copy (unlike expense deletion,
+/// which is unconfirmed and undo-based) — reproducing that here would
+/// duplicate `CategoriesView`'s own confirmation-dialog state. Instead,
+/// tapping "Delete category" dismisses this sheet and calls
+/// `onRequestDelete`, matching the mockup's `askDeleteCat` exactly (it
+/// closes the sheet and opens the confirmation dialog in the same step,
+/// never stacking the two). `CategoriesView`, which already owns
+/// `activeSheet`, is what actually presents the confirmation and calls
+/// `CategoryViewModel.delete(_:)` once the user confirms.
 struct CategorySheetView: View {
 
     // MARK: - Mode
@@ -70,6 +82,13 @@ struct CategorySheetView: View {
 
     let mode: Mode
 
+    /// Handles tapping "Delete category": handed the category being edited
+    /// so the caller (`CategoriesView`) can present its own confirmation
+    /// dialog. Defaults to a no-op via `init(mode:onRequestDelete:)` so
+    /// every pre-#17 call site — namely this file's own previews — is
+    /// unaffected.
+    let onRequestDelete: (Category) -> Void
+
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
@@ -80,8 +99,9 @@ struct CategorySheetView: View {
 
     // MARK: - Initializers
 
-    init(mode: Mode) {
+    init(mode: Mode, onRequestDelete: @escaping (Category) -> Void = { _ in }) {
         self.mode = mode
+        self.onRequestDelete = onRequestDelete
 
         switch mode {
         case .add:
@@ -257,19 +277,11 @@ struct CategorySheetView: View {
 
     // MARK: - Delete
 
-    /// Deletes the category directly on tap, with no confirmation step.
-    ///
-    /// The confirmation dialog is explicitly out of scope for #16 (it needs
-    /// its own affected-transactions-count copy, per the mockup's
-    /// `confirmBody`). Rather than leaving this button silently doing
-    /// nothing until that dialog exists — the same trap `CategoriesView`'s
-    /// own no-op `onDeleteCategory` default was deliberately left in for
-    /// #15 — this calls `CategoryViewModel.delete(_:)` immediately. This is
-    /// an interim behavior only: it should be replaced by a real
-    /// confirmation step in the issue that adds one.
+    /// Dismisses this sheet and hands off to `onRequestDelete` — see the
+    /// "Delete handoff" note in this file's top doc comment.
     private var deleteButton: some View {
         Button(role: .destructive) {
-            deleteCategory()
+            requestDelete()
         } label: {
             Text("Delete category")
                 .font(.subheadline.weight(.semibold))
@@ -326,15 +338,13 @@ struct CategorySheetView: View {
         }
     }
 
-    private func deleteCategory() {
+    /// Hands the category being edited to `onRequestDelete`, then dismisses
+    /// this sheet — matching the mockup's `askDeleteCat`, which closes the
+    /// sheet and opens the confirmation dialog in the same step.
+    private func requestDelete() {
         guard case .edit(let category) = mode else { return }
-
-        do {
-            try categoryViewModel.delete(category)
-            dismiss()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+        onRequestDelete(category)
+        dismiss()
     }
 
     // MARK: - Derived State

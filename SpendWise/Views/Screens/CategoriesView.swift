@@ -13,24 +13,48 @@ import SwiftData
 /// Adding and editing a category (#16) works by presenting
 /// `CategorySheetView` in add or edit mode via an internal `activeSheet`,
 /// mirroring `TransactionsView`'s identical `ExpenseSheetView` (#13)
-/// wiring exactly. The delete confirmation dialog is still out of scope
-/// (a category delete needs confirmation rather than the Transactions
-/// screen's undo-on-swipe pattern, since it can silently re-home many
-/// transactions to Uncategorized): `onDeleteCategory` is left as a no-op
-/// default for row swipe-to-delete until that dialog exists, matching
-/// #15's original precedent — `CategorySheetView`'s own "Delete category"
-/// button, presented from this same sheet, does not go through this
-/// closure at all; it calls `CategoryViewModel.delete(_:)` directly (see
-/// that view's doc comment for why).
+/// wiring exactly.
+///
+/// Deleting a category (#17) always confirms first — unlike expense
+/// deletion, which is unconfirmed and undo-based (#14), since a category
+/// delete can silently re-home many transactions to Uncategorized. This
+/// view owns that confirmation as `deleteRequest`, converging both entry
+/// points on it: row swipe-to-delete calls `beginDelete(_:)` directly, and
+/// `CategorySheetView`'s own "Delete category" button reaches it via
+/// `onRequestDelete`, matching the mockup's `askDeleteCat` (closing the
+/// sheet and opening the confirmation dialog in the same step, never
+/// stacking the two). `confirmDelete()` is what actually calls
+/// `CategoryViewModel.delete(_:)`; a failure keeps `deleteRequest` set
+/// with an error message instead of dismissing, so
+/// `CategoryDeleteConfirmationView` can show it inline and the user can
+/// retry.
 ///
 /// Per CLAUDE.md, this view reads categories via `@Query` directly and
 /// only reaches for `CategoryViewModel`/`TransactionViewModel` for the
 /// pieces of read state it doesn't own itself: each row's spend for the
-/// selected month (`TransactionViewModel.spent(in:categoryID:)`, #8) and
-/// the resulting `BudgetStatus` (`CategoryViewModel.budgetStatus(limit:spent:)`,
-/// #9) — this view is the one place responsible for combining the two,
-/// since neither ViewModel may depend on the other.
+/// selected month (`TransactionViewModel.spent(in:categoryID:)`, #8), the
+/// resulting `BudgetStatus` (`CategoryViewModel.budgetStatus(limit:spent:)`,
+/// #9), and — for the delete confirmation's body copy — a category's
+/// all-time expense count (`TransactionViewModel.count(categoryID:)`, #17).
+/// This view is the one place responsible for combining these, since
+/// neither ViewModel may depend on the other.
 struct CategoriesView: View {
+
+    // MARK: - Delete Request
+
+    /// The pending category delete's view-wiring state: which category, its
+    /// all-time expense count (for `CategoryDeleteConfirmationCopy.body(expenseCount:)`),
+    /// and any delete-failure message. Kept private to this view, mirroring
+    /// `RootView.PendingExpenseDeletion`'s identical precedent, rather than
+    /// promoted to a Domain type — only the pure copy derivation belongs
+    /// there.
+    private struct DeleteRequest: Identifiable {
+        let category: Category
+        let expenseCount: Int
+        var errorMessage: String?
+
+        var id: PersistentIdentifier { category.persistentModelID }
+    }
 
     // MARK: - Properties
 
@@ -39,28 +63,36 @@ struct CategoriesView: View {
 
     @Binding var selectedMonth: MonthKey
 
-    /// Handles tapping "Delete" after swiping a row. No-op by default —
-    /// the confirmation dialog that actually calls
-    /// `CategoryViewModel.delete(_:)` is out of scope for #15/#16.
-    var onDeleteCategory: (Category) -> Void = { _ in }
-
     @State private var activeSheet: CategorySheetView.Mode?
+    @State private var deleteRequest: DeleteRequest?
 
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
+        ZStack {
+            VStack(spacing: 0) {
+                header
 
-            if categories.isEmpty {
-                EveryCategoryGoneEmptyStateView(onAddCategory: { activeSheet = .add })
-            } else {
-                populatedList
+                if categories.isEmpty {
+                    EveryCategoryGoneEmptyStateView(onAddCategory: { activeSheet = .add })
+                } else {
+                    populatedList
+                }
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .sheet(item: $activeSheet) { mode in
-            CategorySheetView(mode: mode)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .sheet(item: $activeSheet) { mode in
+                CategorySheetView(mode: mode, onRequestDelete: beginDelete)
+            }
+
+            if let deleteRequest {
+                CategoryDeleteConfirmationView(
+                    categoryName: deleteRequest.category.name,
+                    expenseCount: deleteRequest.expenseCount,
+                    errorMessage: deleteRequest.errorMessage,
+                    onKeep: { self.deleteRequest = nil },
+                    onDelete: confirmDelete
+                )
+            }
         }
     }
 
@@ -122,7 +154,7 @@ struct CategoriesView: View {
                     .onTapGesture { activeSheet = .edit(category) }
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
-                            onDeleteCategory(category)
+                            beginDelete(category)
                         } label: {
                             Text("Delete")
                         }
@@ -166,6 +198,38 @@ struct CategoriesView: View {
                 .foregroundStyle(Color("AppInk"))
                 .frame(width: 22, height: 22)
                 .background(RoundedRectangle(cornerRadius: 7).fill(Color.primary.opacity(0.05)))
+        }
+    }
+
+    // MARK: - Delete
+
+    /// Starts the delete confirmation flow for `category`, from either
+    /// entry point (row swipe or `CategorySheetView`'s delete button).
+    ///
+    /// A failed count fetch falls back to `0` rather than blocking the
+    /// dialog from opening — matching `spent(for:)`'s identical
+    /// read-only-display fallback precedent below. The only consequence is
+    /// the body copy understating the affected count; the actual delete,
+    /// and the model's `.nullify` rule, are unaffected by what this number
+    /// says.
+    private func beginDelete(_ category: Category) {
+        let count = (try? transactionViewModel.count(categoryID: category.persistentModelID)) ?? 0
+        deleteRequest = DeleteRequest(category: category, expenseCount: count)
+    }
+
+    /// Confirms the pending delete: calls `CategoryViewModel.delete(_:)`
+    /// and, on success, dismisses the dialog. On failure, `deleteRequest`
+    /// stays set with the error message so `CategoryDeleteConfirmationView`
+    /// can show it inline and the user can tap "Delete category" again to
+    /// retry.
+    private func confirmDelete() {
+        guard let deleteRequest else { return }
+
+        do {
+            try categoryViewModel.delete(deleteRequest.category)
+            self.deleteRequest = nil
+        } catch {
+            self.deleteRequest?.errorMessage = error.localizedDescription
         }
     }
 
