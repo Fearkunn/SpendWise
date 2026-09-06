@@ -59,21 +59,27 @@ struct RootView: View {
     // MARK: - Body
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Color("AppSurface")
-                .ignoresSafeArea()
-
-            TabView(selection: $selectedTab) {
-                ForEach(AppTab.allCases) { tab in
-                    tabContent(for: tab)
-                        .tag(tab)
-                }
-            }
-            .toolbar(.hidden, for: .tabBar)
-
-            floatingTabBar
-        }
-        .safeAreaInset(edge: .top) {
+        // The toast is a genuine, unconditional `VStack` sibling stacked
+        // *above* the tab content, rather than an `.overlay` or
+        // `.safeAreaInset` layered onto the `ZStack`/`TabView` below — both
+        // of those were tried and both let the toast overlap
+        // `TransactionsView`'s own header instead of pushing it down,
+        // because `TabView` doesn't reliably propagate an externally
+        // injected safe-area inset into whichever tab is currently
+        // selected. Plain top-to-bottom `VStack` flow has no such
+        // dependency: the toast simply occupies real height, and everything
+        // stacked after it is laid out lower as an ordinary consequence of
+        // that, regardless of how `TabView` manages safe areas internally.
+        //
+        // Neither the toast nor this `VStack` calls `.ignoresSafeArea()`,
+        // so — matching every other plain SwiftUI view — the toast renders
+        // clear of the status bar/notch by default; no manual top-safe-area
+        // math is needed. When the toast is absent, the `if let` below
+        // contributes zero height, so the `ZStack` becomes this `VStack`'s
+        // only child and sits exactly where it always has, letting
+        // `Color("AppSurface").ignoresSafeArea()` bleed to the true top and
+        // bottom screen edges exactly as before.
+        VStack(spacing: 0) {
             if let pendingExpenseDeletion {
                 ExpenseDeleteToastView(
                     toast: pendingExpenseDeletion.toast,
@@ -81,6 +87,21 @@ struct RootView: View {
                     onDismiss: { self.pendingExpenseDeletion = nil }
                 )
                 .padding(.top, 8)
+            }
+
+            ZStack(alignment: .bottom) {
+                Color("AppSurface")
+                    .ignoresSafeArea()
+
+                TabView(selection: $selectedTab) {
+                    ForEach(AppTab.allCases) { tab in
+                        tabContent(for: tab)
+                            .tag(tab)
+                    }
+                }
+                .toolbar(.hidden, for: .tabBar)
+
+                floatingTabBar
             }
         }
     }
