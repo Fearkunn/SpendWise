@@ -17,8 +17,8 @@ import SwiftData
 /// each tab as a `Binding<MonthKey>`. Paging the month from any tab updates
 /// this one source of truth, so every tab stays in sync.
 ///
-/// Each tab's actual content is out of scope for this shell (see #12, #15,
-/// #18) and shown here only as `TabPlaceholderView`.
+/// Each tab's actual content lives in its own screen (see #12, #15, #18) —
+/// this shell only owns tab selection and the shared month.
 ///
 /// The swipe-to-delete undo/retry toast (#14) also lives here rather than
 /// on `TransactionsView`: the mockup keeps the toast visible across tab
@@ -108,9 +108,8 @@ struct RootView: View {
 
     // MARK: - Subviews
 
-    /// Each tab's real content, where it exists — Transactions (#12/#13)
-    /// and Categories (#15/#16) so far. Budget (#18) still shows
-    /// `TabPlaceholderView` until its own screen lands.
+    /// Each tab's real content: Transactions (#12/#13), Budget (#18), and
+    /// Categories (#15/#16).
     ///
     /// `CategoriesView` now presents its own add/edit sheet internally
     /// (#16), the same way `TransactionsView` owns `ExpenseSheetView` — so
@@ -126,7 +125,7 @@ struct RootView: View {
         case .categories:
             CategoriesView(selectedMonth: $selectedMonth)
         case .budget:
-            TabPlaceholderView(tab: tab, selectedMonth: $selectedMonth)
+            BudgetView(selectedMonth: $selectedMonth)
         }
     }
 
