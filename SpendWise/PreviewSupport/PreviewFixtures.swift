@@ -13,6 +13,12 @@ import SwiftData
 /// sparse one-week dataset; a first-launch dataset with categories but no
 /// expenses yet; and a dataset with expenses but no categories at all.
 ///
+/// `richContainer()` additionally includes a month several months back that
+/// contains only uncategorized spend and no categorized transactions at
+/// all — the state-matrix sweep in #20 identified this as the one gap in
+/// otherwise-complete coverage of every budget-related state the design
+/// specifies.
+///
 /// Each scenario builds its own in-memory `ModelContainer`, so a
 /// `#Preview` (or a test exercising a specific shape) can attach one with
 /// `.modelContainer(_:)` without ever touching the app's real, persisted
@@ -28,8 +34,14 @@ enum PreviewFixtures {
     /// - "Groceries" spend exactly equals its limit (`.atLimit`).
     /// - "Dining out" spend exceeds its limit (`.over`).
     /// - "Home" has a limit but zero spend (`.under`, with nothing spent).
-    /// - Two transactions have no category at all (uncategorized spend).
+    /// - Two transactions have no category at all (uncategorized spend),
+    ///   both dated in the current month, which also has categorized
+    ///   spend.
     /// - One "Transport" transaction is dated in the future.
+    /// - A month five calendar months back has only uncategorized spend and
+    ///   no categorized transactions at all, so the Transactions/Budget
+    ///   screens can be previewed there to show a month reconciling to
+    ///   100% uncategorized.
     static func richContainer() -> ModelContainer {
         let container = makeContainer()
         let context = container.mainContext
@@ -90,9 +102,20 @@ enum PreviewFixtures {
             Transaction(amount: 250_000, date: daysAgo(25), note: "Concert ticket", category: fun),
             Transaction(amount: 100_000, date: daysAgo(70), note: "Video game", category: fun),
 
-            // Uncategorized spend.
+            // Uncategorized spend, in the current month alongside plenty of
+            // categorized spend.
             Transaction(amount: 200_000, date: daysAgo(5), note: "Cash withdrawal", category: nil),
-            Transaction(amount: 75_000, date: daysAgo(18), note: "Unrecognized charge", category: nil)
+            Transaction(amount: 75_000, date: daysAgo(18), note: "Unrecognized charge", category: nil),
+
+            // Uncategorized spend in an otherwise-empty month, five calendar
+            // months back — no categorized transaction above reaches this
+            // far, so this month reconciles to 100% uncategorized spend and
+            // 0% categorized. `monthsAgo(_:)` anchors to a real calendar
+            // month directly, rather than approximating one via a day
+            // count, so this can't drift into a month the categorized data
+            // above already touches.
+            Transaction(amount: 90_000, date: monthsAgo(5), note: "Cash withdrawal", category: nil),
+            Transaction(amount: 40_000, date: monthsAgo(5), note: "Unrecognized charge", category: nil)
         ]
 
         transactions.forEach { context.insert($0) }
@@ -214,6 +237,17 @@ enum PreviewFixtures {
     /// A date `days` in the future, relative to now.
     private static func daysFromNow(_ days: Int) -> Date {
         Calendar.current.date(byAdding: .day, value: days, to: Date()) ?? Date()
+    }
+
+    /// A date `months` calendar months in the past, relative to now.
+    ///
+    /// Unlike `daysAgo(_:)`, this anchors directly to a real calendar month
+    /// boundary via `Calendar`'s own month arithmetic rather than
+    /// approximating one with a day count — needed wherever a fixture
+    /// depends on landing in a specific, unambiguous calendar month
+    /// regardless of what day of the month previews happen to run on.
+    private static func monthsAgo(_ months: Int) -> Date {
+        Calendar.current.date(byAdding: .month, value: -months, to: Date()) ?? Date()
     }
 
     /// A date within the *current* calendar month, `fraction` of the way

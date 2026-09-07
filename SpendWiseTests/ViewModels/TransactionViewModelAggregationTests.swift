@@ -194,6 +194,36 @@ struct TransactionViewModelAggregationTests {
         #expect(uncategorized == 100_000)
     }
 
+    // MARK: - Reconciliation Invariant (against PreviewFixtures)
+
+    /// The state-matrix sweep in #20 calls out a specific arithmetic
+    /// invariant the Budget screen depends on: categorized spend plus
+    /// uncategorized spend must always reconcile to the month total. This
+    /// guards that invariant against `PreviewFixtures.richContainer()`'s
+    /// current calendar month, which deliberately mixes several
+    /// categories' spend with uncategorized spend.
+    @Test func categorizedPlusUncategorizedSpendReconcilesToTheMonthTotal() throws {
+        let container = PreviewFixtures.richContainer()
+        let context = ModelContext(container)
+        let viewModel = TransactionViewModel(modelContext: context)
+        let categories = try context.fetch(FetchDescriptor<SpendWise.Category>())
+        let month = Date()
+
+        let monthTotal = try viewModel.monthTotal(in: month)
+        let uncategorizedTotal = try viewModel.uncategorizedTotal(in: month)
+        let categorizedTotal = try categories.reduce(0) { partial, category in
+            try partial + viewModel.spent(in: month, categoryID: category.persistentModelID)
+        }
+
+        // Sanity checks that this is a genuine mixed month, not a
+        // degenerate case where the invariant would hold trivially.
+        #expect(monthTotal > 0)
+        #expect(uncategorizedTotal > 0)
+        #expect(categorizedTotal > 0)
+
+        #expect(monthTotal == uncategorizedTotal + categorizedTotal)
+    }
+
     // MARK: - count(categoryID:)
 
     @Test func countIsZeroWhenTheCategoryHasNoTransactions() throws {
