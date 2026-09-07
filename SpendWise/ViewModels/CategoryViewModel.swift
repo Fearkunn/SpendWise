@@ -138,8 +138,8 @@ final class CategoryViewModel {
     /// turns each affected transaction's `category` into `nil` once this
     /// save completes; that guarantee lives entirely at the model layer.
     ///
-    /// - Throws: `CategoryValidationError.saveFailed` if the deletion can't
-    ///   be persisted.
+    /// - Throws: `CategoryValidationError.deleteFailed` if the deletion
+    ///   can't be persisted.
     func delete(_ category: Category) throws {
         modelContext.delete(category)
 
@@ -147,7 +147,7 @@ final class CategoryViewModel {
             try modelContext.save()
         } catch {
             logger.error("Failed to save category deletion: \(error.localizedDescription)")
-            throw CategoryValidationError.saveFailed(underlying: error)
+            throw CategoryValidationError.deleteFailed(underlying: error)
         }
     }
 
