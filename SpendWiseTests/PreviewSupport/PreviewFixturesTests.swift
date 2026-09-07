@@ -65,6 +65,19 @@ struct PreviewFixturesTests {
         #expect(fun.monthlyLimit == nil)
     }
 
+    @Test func richHasAMonthWithOnlyUncategorizedSpend() throws {
+        let context = ModelContext(PreviewFixtures.richContainer())
+        let transactions = try context.fetch(FetchDescriptor<Transaction>())
+        let fiveMonthsAgo = try #require(Calendar.current.date(byAdding: .month, value: -5, to: Date()))
+
+        let transactionsInThatMonth = transactions.filter {
+            Calendar.current.isDate($0.date, equalTo: fiveMonthsAgo, toGranularity: .month)
+        }
+
+        #expect(!transactionsInThatMonth.isEmpty)
+        #expect(transactionsInThatMonth.allSatisfy { $0.category == nil })
+    }
+
     // MARK: - Sparse
 
     @Test func sparseTransactionsAllFallWithinTheLastWeek() throws {
