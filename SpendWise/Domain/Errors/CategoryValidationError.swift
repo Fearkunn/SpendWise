@@ -23,8 +23,11 @@ enum CategoryValidationError: LocalizedError {
     /// Another category already has this name, compared case-insensitively.
     case duplicateName(name: String)
 
-    /// The underlying `ModelContext` failed to persist the change.
+    /// The underlying `ModelContext` failed to persist an add or update.
     case saveFailed(underlying: Error)
+
+    /// The underlying `ModelContext` failed to persist a deletion.
+    case deleteFailed(underlying: Error)
 
     // MARK: - LocalizedError
 
@@ -35,7 +38,9 @@ enum CategoryValidationError: LocalizedError {
         case .duplicateName(let name):
             return "\"\(name)\" already exists. Two categories with the same name make the picker ambiguous."
         case .saveFailed:
-            return "Something went wrong while saving. Please try again."
+            return "Couldn't save — the change is still on this device only. Try again."
+        case .deleteFailed:
+            return "Couldn't delete — nothing has changed. Try again."
         }
     }
 }

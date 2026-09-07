@@ -35,7 +35,7 @@ enum TransactionValidationError: LocalizedError {
         case .missingDate:
             return "Pick a date for this expense."
         case .saveFailed:
-            return "Something went wrong while saving. Please try again."
+            return "Couldn't save — the change is still on this device only. Try again."
         }
     }
 }
